@@ -5,7 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class ConnectDB {
+public class ConnectionDB {
     private static final String URL = "jdbc:mysql://localhost:3306/course_and_student_management";
     private static final String USER_NAME = "root";
     private static final String PASSWORD = "12345678";
@@ -14,7 +14,6 @@ public class ConnectDB {
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(URL, USER_NAME, PASSWORD);
-            System.out.println("Kết nối thành công");
             return conn;
         } catch (SQLException e) {
             System.err.println("Lỗi kết nối CSDL do: " + e.getMessage());
