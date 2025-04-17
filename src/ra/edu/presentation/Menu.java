@@ -1,129 +1,241 @@
 package ra.edu.presentation;
 
-import ra.edu.controller.AdminController;
+import ra.edu.business.model.Role;
+import ra.edu.controller.AccountController;
+import ra.edu.controller.CourseController;
+import ra.edu.controller.EnrollmentController;
 import ra.edu.controller.StudentController;
-import ra.edu.exception.InvalidInputException;
 import ra.edu.utils.InputUtil;
-import ra.edu.utils.SessionManager;
+import ra.edu.utils.Session;
 
 public class Menu {
-    private final AdminController adminController = new AdminController();
-    private final StudentController studentController = new StudentController();
+    private AccountController accountController = new AccountController();
+    private CourseController courseController = new CourseController();
+    private StudentController studentController = new StudentController();
+    private EnrollmentController enrollmentController = new EnrollmentController();
+
     public void start() {
         while (true) {
+            displayLoginMenu();
             try {
-                System.out.println("\n============ HỆ THỐNG QUẢN LÝ ĐÀO TẠO ============");
-                System.out.println("1. Đăng nhập với tư cách quản trị viên");
-                System.out.println("2. Đăng nhập với tư cách học viên");
-                System.out.println("===================================================");
-                int choice = InputUtil.getChoice(1, 2, "Nhập lựa chọn: ");
-                if (choice == 1) {
-                    handleAdminLogin();
-                } else {
-                    handleStudentLogin();
+                int choice = InputUtil.getChoice(1, 3, "Chọn chức năng: ");
+                switch (choice) {
+                    case 1:
+                        handleLogin();
+                        break;
+                    case 2:
+                        handleRegister();
+                        break;
+                    case 3:
+                        System.exit(0);
                 }
-            } catch (InvalidInputException e) {
+                if (Session.isLoggedIn()) {
+                    if (Session.getUserRole().equals(Role.ADMIN.getValue())) {
+                        displayAdminMenu();
+                    } else {
+                        displayStudentMenu();
+                    }
+                }
+            } catch (Exception e) {
                 System.out.println("Lỗi: " + e.getMessage());
             }
-        }
-    }
-    private void handleAdminLogin() {
-        try {
-            String username = InputUtil.getString("Nhập tên đăng nhập: ");
-            String password = InputUtil.getString("Nhập mật khẩu: ");
-            var admin = adminController.handleLogin(username, password);
-            if (admin != null) {
-                SessionManager.loginAdmin(admin.getId());
-                System.out.println("Đăng nhập quản trị viên thành công! ID: " + SessionManager.getAdminId());
-                showAdminMenu();
-            } else {
-                System.out.println("Đăng nhập thất bại.");
-            }
-        } catch (InvalidInputException e) {
-            System.out.println("Lỗi: " + e.getMessage());
         }
     }
 
-    private void handleStudentLogin() {
-        try {
-            String email = InputUtil.getString("Nhập email: ");
-            String password = InputUtil.getString("Nhập mật khẩu: ");
-            var student = studentController.handleLogin(email, password);
-            if (student != null) {
-                SessionManager.loginStudent(student.getId());
-                System.out.println("Đăng nhập học viên thành công! ID: " + SessionManager.getStudentId());
-                showStudentMenu();
-            } else {
-                System.out.println("Đăng nhập thất bại.");
-            }
-        } catch (InvalidInputException e) {
-            System.out.println("Lỗi: " + e.getMessage());
-        }
+    private void displayLoginMenu() {
+        System.out.println("\n=== HỆ THỐNG QUẢN LÝ KHÓA HỌC VÀ HỌC VIÊN ===");
+        System.out.println("1. Đăng nhập");
+        System.out.println("2. Đăng ký");
+        System.out.println("3. Thoát");
     }
-    private void showAdminMenu() {
+
+    private void displayAdminMenu() {
         while (true) {
+            System.out.println("\n=== MENU QUẢN TRỊ VIÊN ===");
+            System.out.println("1. Quản lý khóa học");
+            System.out.println("2. Quản lý học viên");
+            System.out.println("3. Quản lý đăng ký");
+            System.out.println("4. Thống kê");
+            System.out.println("5. Đăng xuất");
             try {
-                System.out.println("\n============ MENU ADMIN ============");
-                System.out.println("1. Quản lý khoá học");
-                System.out.println("2. Quản lý học viên");
-                System.out.println("3. Quản lý đăng ký học");
-                System.out.println("4. Thống kê học viên theo khoá học");
-                System.out.println("5. Đăng xuất");
-                System.out.println("====================================");
-                int choice = InputUtil.getChoice(1, 5, "Nhập lựa chọn: ");
+                int choice = InputUtil.getChoice(1, 5, "Chọn chức năng: ");
                 switch (choice) {
                     case 1:
+                        manageCourses();
                         break;
                     case 2:
+                        manageStudents();
                         break;
                     case 3:
+                        manageEnrollments();
                         break;
                     case 4:
+                        enrollmentController.displayStatistics();
                         break;
                     case 5:
-                        SessionManager.logout();
-                        System.out.println("Đã đăng xuất. Session ID: " + SessionManager.getAdminId());
+                        accountController.logoutAccount();
                         return;
                 }
-            } catch (InvalidInputException e) {
+            } catch (Exception e) {
                 System.out.println("Lỗi: " + e.getMessage());
             }
         }
     }
-    private void showStudentMenu() {
+
+    private void displayStudentMenu() {
         while (true) {
+            System.out.println("\n=== MENU HỌC VIÊN ===");
+            System.out.println("1. Xem danh sách khóa học");
+            System.out.println("2. Đăng ký khóa học");
+            System.out.println("3. Xem khóa học đã đăng ký");
+            System.out.println("4. Hủy đăng ký khóa học");
+            System.out.println("5. Đổi mật khẩu");
+            System.out.println("6. Đăng xuất");
             try {
-                System.out.println("\n============= Menu Học viên =============");
-                System.out.println("1. Xem danh sách khoá học");
-                System.out.println("2. Đăng ký khoá học");
-                System.out.println("3. Xem khoá học đã đăng ký");
-                System.out.println("4. Huỷ đăng ký");
-                System.out.println("5. Đổi mật khẩu");
-                System.out.println("6. Đăng xuất");
-                System.out.println("========================================");
-                int choice = InputUtil.getChoice(1, 6, "Nhập lựa chọn: ");
+                int choice = InputUtil.getChoice(1, 6, "Chọn chức năng: ");
                 switch (choice) {
                     case 1:
+                        courseController.displayCourses();
                         break;
                     case 2:
+                        enrollmentController.registerCourse();
                         break;
                     case 3:
+                        enrollmentController.viewRegisteredCourses();
                         break;
                     case 4:
+                        enrollmentController.cancelRegistration();
                         break;
                     case 5:
-                        String oldPassword = InputUtil.getString("Nhập mật khẩu cũ: ");
-                        String newPassword = InputUtil.getString("Nhập mật khẩu mới: ");
-                        if (studentController.handleChangePassword(SessionManager.getStudentId(), oldPassword, newPassword)) {
-                            System.out.println("Đổi mật khẩu thành công!");
-                        }
+                        accountController.changeStudentPassword();
                         break;
                     case 6:
-                        SessionManager.logout();
-                        System.out.println("Đã đăng xuất. Session ID: " + SessionManager.getStudentId());
+                        accountController.logoutAccount();
                         return;
                 }
-            } catch (InvalidInputException e) {
+            } catch (Exception e) {
+                System.out.println("Lỗi: " + e.getMessage());
+            }
+        }
+    }
+
+    private void handleLogin() {
+        if (accountController.loginAccount()) {
+            System.out.println("Đăng nhập thành công! Vai trò: " + Session.getUserRole());
+        }
+    }
+
+    private void handleRegister() {
+        accountController.registerAccount();
+    }
+
+    private void manageCourses() {
+        while (true) {
+            System.out.println("\n=== QUẢN LÝ KHÓA HỌC ===");
+            System.out.println("1. Thêm khóa học");
+            System.out.println("2. Cập nhật khóa học");
+            System.out.println("3. Xóa khóa học");
+            System.out.println("4. Tìm kiếm khóa học");
+            System.out.println("5. Sắp xếp khóa học");
+            System.out.println("6. Hiển thị danh sách khóa học");
+            System.out.println("7. Quay lại");
+            try {
+                int choice = InputUtil.getChoice(1, 7, "Chọn chức năng: ");
+                switch (choice) {
+                    case 1:
+                        courseController.addCourse();
+                        break;
+                    case 2:
+                        courseController.updateCourse();
+                        break;
+                    case 3:
+                        courseController.deleteCourse();
+                        break;
+                    case 4:
+                        courseController.searchCourse();
+                        break;
+                    case 5:
+                        courseController.sortCourse();
+                        break;
+                    case 6:
+                        courseController.displayCourses();
+                        break;
+                    case 7:
+                        return;
+                }
+            } catch (Exception e) {
+                System.out.println("Lỗi: " + e.getMessage());
+            }
+        }
+    }
+
+    private void manageStudents() {
+        while (true) {
+            System.out.println("\n=== QUẢN LÝ HỌC VIÊN ===");
+            System.out.println("1. Thêm học viên");
+            System.out.println("2. Cập nhật học viên");
+            System.out.println("3. Xóa học viên");
+            System.out.println("4. Tìm kiếm học viên");
+            System.out.println("5. Sắp xếp học viên");
+            System.out.println("6. Hiển thị danh sách học viên");
+            System.out.println("7. Quay lại");
+            try {
+                int choice = InputUtil.getChoice(1, 7, "Chọn chức năng: ");
+                switch (choice) {
+                    case 1:
+                        studentController.addStudent();
+                        break;
+                    case 2:
+                        studentController.updateStudent();
+                        break;
+                    case 3:
+                        studentController.deleteStudent();
+                        break;
+                    case 4:
+                        studentController.searchStudent();
+                        break;
+                    case 5:
+                        studentController.sortStudent();
+                        break;
+                    case 6:
+                        studentController.displayStudents();
+                        break;
+                    case 7:
+                        return;
+                }
+            } catch (Exception e) {
+                System.out.println("Lỗi: " + e.getMessage());
+            }
+        }
+    }
+
+    private void manageEnrollments() {
+        while (true) {
+            System.out.println("\n=== QUẢN LÝ ĐĂNG KÝ ===");
+            System.out.println("1. Thêm học viên vào khóa học");
+            System.out.println("2. Xóa học viên khỏi khóa học");
+            System.out.println("3. Xem học viên theo khóa học");
+            System.out.println("4. Xem số học viên theo khóa học");
+            System.out.println("5. Quay lại");
+            try {
+                int choice = InputUtil.getChoice(1, 5, "Chọn chức năng: ");
+                switch (choice) {
+                    case 1:
+                        enrollmentController.addStudentToCourse();
+                        break;
+                    case 2:
+                        enrollmentController.removeStudentFromCourse();
+                        break;
+                    case 3:
+                        enrollmentController.displayStudentsByCourse();
+                        break;
+                    case 4:
+                        enrollmentController.countStudentsByCourse();
+                        break;
+                    case 5:
+                        return;
+                }
+            } catch (Exception e) {
                 System.out.println("Lỗi: " + e.getMessage());
             }
         }

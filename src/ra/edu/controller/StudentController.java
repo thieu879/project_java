@@ -3,94 +3,146 @@ package ra.edu.controller;
 import ra.edu.business.model.Student;
 import ra.edu.business.service.student.IStudentService;
 import ra.edu.business.service.student.StudentServiceImp;
+import ra.edu.exception.DatabaseException;
+import ra.edu.exception.ValidationException;
+import ra.edu.utils.InputUtil;
+import ra.edu.utils.TableFormatter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class StudentController {
-    private final IStudentService studentService = new StudentServiceImp();
+    private IStudentService studentService = new StudentServiceImp();
+    private static final int PAGE_SIZE = 2;
 
-    public Student handleLogin(String email, String password) {
+    public void addStudent() {
         try {
-            return studentService.login(email, password);
-        } catch (Exception e) {
+            Student student = new Student();
+            student.setName(InputUtil.getNonEmptyString("Nhập tên học viên: "));
+            student.setDob(InputUtil.getValidDate("Nhập ngày sinh (yyyy-MM-dd): "));
+            student.setEmail(InputUtil.getNonEmptyString("Nhập email: "));
+            student.setSex(InputUtil.getBoolean("Nhập giới tính (Nam/Nữ): "));
+            student.setPhone(InputUtil.getNonEmptyString("Nhập số điện thoại: "));
+            student.setCreateAt(LocalDate.now());
+            student.setStatus("ACTIVE");
+            String password = InputUtil.getNonEmptyString("Nhập mật khẩu: ");
+            studentService.addStudent(student, password);
+            System.out.println("Thêm học viên thành công!");
+        } catch (ValidationException | DatabaseException e) {
             System.out.println("Lỗi: " + e.getMessage());
-            return null;
         }
     }
 
-    public boolean handleAddStudent(Student student) {
+    public void updateStudent() {
         try {
-            studentService.addStudent(student);
-            return true;
-        } catch (Exception e) {
+            Student student = new Student();
+            student.setId(InputUtil.getPositiveInt("Nhập ID học viên: "));
+            student.setName(InputUtil.getNonEmptyString("Nhập tên học viên: "));
+            student.setDob(InputUtil.getValidDate("Nhập ngày sinh (yyyy-MM-dd): "));
+            student.setEmail(InputUtil.getNonEmptyString("Nhập email: "));
+            student.setSex(InputUtil.getBoolean("Nhập giới tính (Nam/Nữ): "));
+            student.setPhone(InputUtil.getNonEmptyString("Nhập số điện thoại: "));
+            student.setCreateAt(LocalDate.now());
+            student.setStatus("ACTIVE");
+            String password = InputUtil.getNonEmptyString("Nhập mật khẩu mới (hoặc để trống): ");
+            studentService.updateStudent(student, password.isEmpty() ? null : password);
+            System.out.println("Cập nhật học viên thành công!");
+        } catch (ValidationException | DatabaseException e) {
             System.out.println("Lỗi: " + e.getMessage());
-            return false;
         }
     }
 
-    public boolean handleUpdateStudent(Student student) {
+    public void deleteStudent() {
         try {
-            studentService.updateStudent(student);
-            return true;
-        } catch (Exception e) {
-            System.out.println("Lỗi: " + e.getMessage());
-            return false;
-        }
-    }
-
-    public boolean handleDeleteStudent(int id) {
-        try {
+            int id = InputUtil.getPositiveInt("Nhập ID học viên: ");
             studentService.deleteStudent(id);
-            return true;
-        } catch (Exception e) {
+            System.out.println("Xóa học viên thành công!");
+        } catch (DatabaseException | ValidationException e) {
             System.out.println("Lỗi: " + e.getMessage());
-            return false;
         }
     }
 
-    public List<Student> handleGetAllStudents() {
+    public void searchStudent() {
         try {
-            return studentService.getAllStudents();
-        } catch (Exception e) {
+            String name = InputUtil.getNonEmptyString("Nhập tên học viên (hoặc để trống): ");
+            String email = InputUtil.getNonEmptyString("Nhập email (hoặc để trống): ");
+            int id = 0;
+            try {
+                id = InputUtil.getPositiveInt("Nhập ID học viên (hoặc 0 nếu không tìm theo ID): ");
+            } catch (ValidationException ignored) {}
+            int page = 1;
+            int[] totalPages = new int[1];
+            while (true) {
+                List<Student> students = studentService.searchStudent(name.isEmpty() ? null : name, email.isEmpty() ? null : email, id, page, PAGE_SIZE, totalPages);
+                TableFormatter.displayStudents(students);
+                System.out.println("Trang: " + page + "/" + totalPages[0]);
+                displayPagingMenu();
+                int choice = InputUtil.getChoice(1, 3, "Chọn chức năng: ");
+                if (choice == 1 && page < totalPages[0]) {
+                    page++;
+                } else if (choice == 2 && page > 1) {
+                    page--;
+                } else if (choice == 3) {
+                    break;
+                }
+            }
+        } catch (DatabaseException | ValidationException e) {
             System.out.println("Lỗi: " + e.getMessage());
-            return List.of();
         }
     }
 
-    public List<Student> handleSearchStudent(String name, String email, int id) {
+    public void sortStudent() {
         try {
-            return studentService.searchStudent(name, email, id);
-        } catch (Exception e) {
+            int sortBy = InputUtil.getChoice(1, 2, "Chọn tiêu chí sắp xếp (1: Tên, 2: Ngày sinh): ");
+            boolean isAsc = InputUtil.getBoolean("Sắp xếp tăng dần? (Nam/Nữ): ");
+            int page = 1;
+            int[] totalPages = new int[1];
+            while (true) {
+                List<Student> students = studentService.sortStudent(sortBy, isAsc, page, PAGE_SIZE, totalPages);
+                TableFormatter.displayStudents(students);
+                System.out.println("Trang: " + page + "/" + totalPages[0]);
+                displayPagingMenu();
+                int choice = InputUtil.getChoice(1, 3, "Chọn chức năng: ");
+                if (choice == 1 && page < totalPages[0]) {
+                    page++;
+                } else if (choice == 2 && page > 1) {
+                    page--;
+                } else if (choice == 3) {
+                    break;
+                }
+            }
+        } catch (ValidationException | DatabaseException e) {
             System.out.println("Lỗi: " + e.getMessage());
-            return List.of();
         }
     }
 
-    public List<Student> handleSortStudent(int sortBy) {
+    public void displayStudents() {
         try {
-            return studentService.sortStudent(sortBy);
-        } catch (Exception e) {
+            int page = 1;
+            int[] totalPages = new int[1];
+            while (true) {
+                List<Student> students = studentService.displayStudents(page, PAGE_SIZE, totalPages);
+                TableFormatter.displayStudents(students);
+                System.out.println("Trang: " + page + "/" + totalPages[0]);
+                displayPagingMenu();
+                int choice = InputUtil.getChoice(1, 3, "Chọn chức năng: ");
+                if (choice == 1 && page < totalPages[0]) {
+                    page++;
+                } else if (choice == 2 && page > 1) {
+                    page--;
+                } else if (choice == 3) {
+                    break;
+                }
+            }
+        } catch (DatabaseException | ValidationException e) {
             System.out.println("Lỗi: " + e.getMessage());
-            return List.of();
         }
     }
 
-    public List<Student> handleGetStudentsByCourse(int courseId) {
-        try {
-            return studentService.getStudentsByCourse(courseId);
-        } catch (Exception e) {
-            System.out.println("Lỗi: " + e.getMessage());
-            return List.of();
-        }
-    }
-
-    public boolean handleChangePassword(int studentId, String oldPassword, String newPassword) {
-        try {
-            studentService.changePassword(studentId, oldPassword, newPassword);
-            return true;
-        } catch (Exception e) {
-            System.out.println("Lỗi: " + e.getMessage());
-            return false;
-        }
+    private void displayPagingMenu() {
+        System.out.println("\n=== MENU PHÂN TRANG ===");
+        System.out.println("1. Trang tiếp");
+        System.out.println("2. Trang trước");
+        System.out.println("3. Quay lại");
     }
 }

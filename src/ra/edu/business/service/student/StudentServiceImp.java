@@ -1,82 +1,69 @@
 package ra.edu.business.service.student;
 
-import ra.edu.business.dao.student.StudentDAO;
+import ra.edu.business.dao.student.IStudentDAO;
 import ra.edu.business.dao.student.StudentDAOImp;
 import ra.edu.business.model.Student;
-import ra.edu.exception.InvalidInputException;
+import ra.edu.exception.DatabaseException;
+import ra.edu.exception.ValidationException;
 import ra.edu.validate.StudentValidator;
 
 import java.util.List;
 
 public class StudentServiceImp implements IStudentService {
-    private final StudentDAO studentDAO = new StudentDAOImp();
+    private IStudentDAO studentDAO = new StudentDAOImp();
 
     @Override
-    public Student login(String email, String password) throws Exception {
-        if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
-            throw new InvalidInputException("Email và mật khẩu không được để trống.");
-        }
-        Student student = studentDAO.login(email, password);
-        if (student == null) {
-            throw new InvalidInputException("Đăng nhập thất bại. Email hoặc mật khẩu không đúng.");
-        }
-        return student;
-    }
-
-    @Override
-    public void addStudent(Student student) throws Exception {
+    public void addStudent(Student student, String password) throws ValidationException, DatabaseException {
         StudentValidator.validate(student);
-        studentDAO.addStudent(student);
-    }
-
-    @Override
-    public void updateStudent(Student student) throws Exception {
-        StudentValidator.validate(student);
-        studentDAO.updateStudent(student);
-    }
-
-    @Override
-    public void deleteStudent(int id) throws Exception {
-        if (id <= 0) {
-            throw new InvalidInputException("Mã học viên phải lớn hơn 0.");
+        int result = studentDAO.addStudent(student, password);
+        if (result == 0) {
+            throw new DatabaseException("Học viên đã tồn tại.");
+        } else if (result == -1) {
+            throw new DatabaseException("Lỗi không xác định khi thêm học viên.");
         }
-        studentDAO.deleteStudent(id);
     }
 
     @Override
-    public List<Student> getAllStudents() throws Exception {
-        return studentDAO.getAllStudents();
+    public void updateStudent(Student student, String password) throws ValidationException, DatabaseException {
+        StudentValidator.validate(student);
+        int result = studentDAO.updateStudent(student, password);
+        if (result == 0) {
+            throw new DatabaseException("Học viên không tồn tại.");
+        }
     }
 
     @Override
-    public List<Student> searchStudent(String name, String email, int id) throws Exception {
-        return studentDAO.searchStudent(name, email, id);
+    public void deleteStudent(int id) throws DatabaseException {
+        int result = studentDAO.deleteStudent(id);
+        if (result == 0) {
+            throw new DatabaseException("Học viên không tồn tại.");
+        }
     }
 
     @Override
-    public List<Student> sortStudent(int sortBy) throws Exception {
+    public List<Student> displayStudents(int page, int pageSize, int[] totalPages) throws DatabaseException {
+        return studentDAO.displayStudents(page, pageSize, totalPages);
+    }
+
+    @Override
+    public List<Student> searchStudent(String name, String email, int id, int page, int pageSize, int[] totalPages) throws DatabaseException {
+        return studentDAO.searchStudent(name, email, id, page, pageSize, totalPages);
+    }
+
+    @Override
+    public List<Student> sortStudent(int sortBy, boolean isAsc, int page, int pageSize, int[] totalPages) throws DatabaseException {
         if (sortBy != 1 && sortBy != 2) {
-            throw new InvalidInputException("Tùy chọn sắp xếp không hợp lệ.");
+            throw new DatabaseException("Tiêu chí sắp xếp không hợp lệ.");
         }
-        return studentDAO.sortStudent(sortBy);
+        return studentDAO.sortStudent(sortBy, isAsc, page, pageSize, totalPages);
     }
 
     @Override
-    public List<Student> getStudentsByCourse(int courseId) throws Exception {
-        if (courseId <= 0) {
-            throw new InvalidInputException("Mã khóa học phải lớn hơn 0.");
+    public int getStudentIdByEmail(String email) throws DatabaseException {
+        int studentId = studentDAO.getStudentIdByEmail(email);
+        if (studentId == 0) {
+            throw new DatabaseException("Học viên không tồn tại hoặc không hoạt động.");
         }
-        return studentDAO.getStudentsByCourse(courseId);
-    }
-
-    @Override
-    public void changePassword(int studentId, String oldPassword, String newPassword) throws Exception {
-        if (studentId <= 0) {
-            throw new InvalidInputException("Mã học viên phải lớn hơn 0.");
-        }
-        if (newPassword == null || newPassword.trim().isEmpty()) {
-            throw new InvalidInputException("Mật khẩu mới không được để trống.");
-        }
-        studentDAO.changePassword(studentId, oldPassword, newPassword);
+        return studentId;
     }
 }

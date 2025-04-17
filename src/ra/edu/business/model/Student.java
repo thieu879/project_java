@@ -7,80 +7,38 @@ public class Student {
     private String name;
     private LocalDate dob;
     private String email;
-    private boolean sex; // true: Male, false: Female
+    private boolean sex;
     private String phone;
-    private String password;
+    private LocalDate createAt;
+    private String status;
 
     public Student() {}
 
-    public Student(int id, String name, LocalDate dob, String email, boolean sex, String phone, String password) {
+    public Student(int id, String name, LocalDate dob, String email, boolean sex, String phone, LocalDate createAt, String status) {
         this.id = id;
         this.name = name;
         this.dob = dob;
         this.email = email;
         this.sex = sex;
         this.phone = phone;
-        this.password = password;
+        this.createAt = createAt;
+        this.status = status;
     }
 
-    public LocalDate getDob() {
-        return dob;
-    }
-
-    public void setDob(LocalDate dob) {
-        this.dob = dob;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public boolean isSex() {
-        return sex;
-    }
-
-    public void setSex(boolean sex) {
-        this.sex = sex;
-    }
-
-    @Override
-    public String toString() {
-        return "Student{id=" + id + ", name='" + name + "', email='" + email + "', sex=" + (sex ? "Male" : "Female") + "}";
-    }
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public LocalDate getDob() { return dob; }
+    public void setDob(LocalDate dob) { this.dob = dob; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public boolean isSex() { return sex; }
+    public void setSex(boolean sex) { this.sex = sex; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public LocalDate getCreateAt() { return createAt; }
+    public void setCreateAt(LocalDate createAt) { this.createAt = createAt; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }
