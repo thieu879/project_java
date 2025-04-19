@@ -90,21 +90,21 @@ public class CourseDAOImp implements ICourseDAO {
     }
 
     @Override
-    public List<Course> searchCourse(String name, int page, int pageSize, int[] totalPages) throws DatabaseException {
+    public List<Course> searchCourse(String name, String instructor, int page, int pageSize, int[] totalPages) throws DatabaseException {
         Connection conn = null;
         CallableStatement stmt = null;
         ResultSet rs = null;
         List<Course> courses = new ArrayList<>();
         try {
             conn = ConnectionDB.openConnection();
-            conn.setAutoCommit(false);
             stmt = conn.prepareCall("{CALL search_course(?,?,?,?,?)}");
             stmt.setString(1, name);
-            stmt.setInt(2, page);
-            stmt.setInt(3, pageSize);
-            stmt.registerOutParameter(4, Types.INTEGER);
-            stmt.registerOutParameter(5, Types.INTEGER);
+            stmt.setString(2, instructor);
+            stmt.setInt(3, page);
+            stmt.setInt(4, pageSize);
+            stmt.registerOutParameter(5, java.sql.Types.INTEGER);
             rs = stmt.executeQuery();
+
             while (rs.next()) {
                 Course course = new Course();
                 course.setId(rs.getInt("id"));
@@ -115,18 +115,12 @@ public class CourseDAOImp implements ICourseDAO {
                 course.setStatus(rs.getString("status"));
                 courses.add(course);
             }
-            totalPages[0] = stmt.getInt(4);
-            conn.commit();
+
+            totalPages[0] = stmt.getInt(5);
             return courses;
         } catch (SQLException e) {
-            try {
-                if (conn != null) conn.rollback();
-            } catch (SQLException ex) {
-                throw new DatabaseException("Lỗi rollback: " + ex.getMessage());
-            }
             throw new DatabaseException("Lỗi khi tìm kiếm khóa học: " + e.getMessage());
         } finally {
-            if (rs != null) try { rs.close(); } catch (SQLException ignored) {}
             ConnectionDB.closeConnection(conn, stmt);
         }
     }

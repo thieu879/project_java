@@ -39,8 +39,8 @@ public class CourseServiceImp implements ICourseService {
     }
 
     @Override
-    public List<Course> searchCourse(String name, int page, int pageSize, int[] totalPages) throws DatabaseException {
-        return courseDAO.searchCourse(name, page, pageSize, totalPages);
+    public List<Course> searchCourse(String name, String instructor, int page, int pageSize, int[] totalPages) throws DatabaseException {
+        return courseDAO.searchCourse(name, instructor, page, pageSize, totalPages);
     }
 
     @Override

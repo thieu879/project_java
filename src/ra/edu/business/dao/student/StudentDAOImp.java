@@ -146,16 +146,15 @@ public class StudentDAOImp implements IStudentDAO {
         List<Student> students = new ArrayList<>();
         try {
             conn = ConnectionDB.openConnection();
-            conn.setAutoCommit(false);
-            stmt = conn.prepareCall("{CALL search_student(?,?,?,?,?,?,?)}");
+            stmt = conn.prepareCall("{CALL search_student(?,?,?,?,?,?)}");
             stmt.setString(1, name);
             stmt.setString(2, email);
             stmt.setInt(3, id);
             stmt.setInt(4, page);
             stmt.setInt(5, pageSize);
-            stmt.registerOutParameter(6, Types.INTEGER);
-            stmt.registerOutParameter(7, Types.INTEGER);
+            stmt.registerOutParameter(6, java.sql.Types.INTEGER);
             rs = stmt.executeQuery();
+
             while (rs.next()) {
                 Student student = new Student();
                 student.setId(rs.getInt("id"));
@@ -168,18 +167,12 @@ public class StudentDAOImp implements IStudentDAO {
                 student.setStatus(rs.getString("status"));
                 students.add(student);
             }
+
             totalPages[0] = stmt.getInt(6);
-            conn.commit();
             return students;
         } catch (SQLException e) {
-            try {
-                if (conn != null) conn.rollback();
-            } catch (SQLException ex) {
-                throw new DatabaseException("Lỗi rollback: " + ex.getMessage());
-            }
             throw new DatabaseException("Lỗi khi tìm kiếm học viên: " + e.getMessage());
         } finally {
-            if (rs != null) try { rs.close(); } catch (SQLException ignored) {}
             ConnectionDB.closeConnection(conn, stmt);
         }
     }

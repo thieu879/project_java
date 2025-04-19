@@ -58,21 +58,46 @@ public class CourseController {
 
     public void searchCourse() {
         try {
-            String name = InputUtil.getNonEmptyString("Nhập tên khóa học để tìm kiếm: ");
-            int page = 1;
-            int[] totalPages = new int[1];
+            String name = null;
+            String instructor = null;
+
             while (true) {
-                List<Course> courses = courseService.searchCourse(name, page, PAGE_SIZE, totalPages);
-                TableFormatter.displayCourses(courses);
-                System.out.println("Trang: " + page + "/" + totalPages[0]);
-                displayPagingMenu();
-                int choice = InputUtil.getChoice(1, 3, "Chọn chức năng: ");
-                if (choice == 1 && page < totalPages[0]) {
-                    page++;
-                } else if (choice == 2 && page > 1) {
-                    page--;
-                } else if (choice == 3) {
-                    break;
+                System.out.println("\n=== MENU TÌM KIẾM KHÓA HỌC ===");
+                System.out.println("1. Tìm theo tên khóa học");
+                System.out.println("2. Tìm theo giảng viên");
+                System.out.println("3. Thực hiện tìm kiếm");
+                System.out.println("4. Quay lại");
+
+                int choice = InputUtil.getChoice(1, 4, "Chọn chức năng: ");
+                switch (choice) {
+                    case 1:
+                        name = InputUtil.getNonEmptyString("Nhập tên khóa học (hoặc để trống để bỏ qua): ");
+                        if (name.isEmpty()) name = null;
+                        break;
+                    case 2:
+                        instructor = InputUtil.getNonEmptyString("Nhập tên giảng viên (hoặc để trống để bỏ qua): ");
+                        if (instructor.isEmpty()) instructor = null;
+                        break;
+                    case 3:
+                        int page = 1;
+                        int[] totalPages = new int[1];
+                        while (true) {
+                            List<Course> courses = courseService.searchCourse(name, instructor, page, PAGE_SIZE, totalPages);
+                            TableFormatter.displayCourses(courses);
+                            System.out.println("Trang: " + page + "/" + totalPages[0]);
+                            displayPagingMenu();
+                            int pagingChoice = InputUtil.getChoice(1, 3, "Chọn chức năng: ");
+                            if (pagingChoice == 1 && page < totalPages[0]) {
+                                page++;
+                            } else if (pagingChoice == 2 && page > 1) {
+                                page--;
+                            } else if (pagingChoice == 3) {
+                                break;
+                            }
+                        }
+                        break;
+                    case 4:
+                        return;
                 }
             }
         } catch (DatabaseException | ValidationException e) {

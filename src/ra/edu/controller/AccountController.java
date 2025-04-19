@@ -32,6 +32,8 @@ public class AccountController {
             if (result > 0) {
                 Session.login(userEmail[0], userRole[0], result);
                 return true;
+            } else if (result == -1 ) {
+                System.err.println("Tài khoản đã bị khoá");
             }
             return false;
         } catch (ValidationException | DatabaseException e) {

@@ -10,7 +10,7 @@ public interface ICourseService {
     void addCourse(Course course) throws ValidationException, DatabaseException;
     void updateCourse(Course course) throws ValidationException, DatabaseException;
     void deleteCourse(int id) throws DatabaseException;
-    List<Course> searchCourse(String name, int page, int pageSize, int[] totalPages) throws DatabaseException;
+    List<Course> searchCourse(String name, String instructor, int page, int pageSize, int[] totalPages) throws DatabaseException;
     List<Course> sortCourse(int sortBy, boolean isAsc, int page, int pageSize, int[] totalPages) throws DatabaseException;
     List<Course> displayCourses(int page, int pageSize, int[] totalPages) throws DatabaseException;
 }

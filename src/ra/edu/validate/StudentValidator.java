@@ -7,8 +7,8 @@ import java.time.LocalDate;
 import java.util.regex.Pattern;
 
 public class StudentValidator {
-    private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@(.+)$";
-    private static final String PHONE_REGEX = "\\d{10,11}";
+    private static final String EMAIL_REGEX = "^[A-Za-z0-9]+@gmail\\.com$";
+    private static final String PHONE_REGEX = "^(0[35789])+([0-9]{8})$";
 
     public static void validate(Student student) throws ValidationException {
         if (student == null) {
