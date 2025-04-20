@@ -10,11 +10,12 @@ import ra.edu.utils.TableFormatter;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Scanner;
 
 public class CourseController {
     private ICourseService courseService = new CourseServiceImp();
     private static final int PAGE_SIZE = 2;
-
+    private Scanner scanner = new Scanner(System.in);
     public void addCourse() {
         try {
             Course course = new Course();
@@ -48,7 +49,23 @@ public class CourseController {
 
     public void deleteCourse() {
         try {
+            // Hiển thị danh sách khóa học
+            System.out.println("\nDanh sách khóa học hiện tại:");
+            int page = 1;
+            int[] totalPages = new int[1];
+            List<Course> courses = courseService.displayCourses(page, PAGE_SIZE, totalPages);
+            TableFormatter.displayCourses(courses);
+            System.out.println("Trang: " + page + "/" + totalPages[0]);
+
+            // Nhập ID và xác nhận
             int id = InputUtil.getPositiveInt("Nhập ID khóa học: ");
+            System.out.print("Bạn có chắc chắn muốn xóa khóa học này? (Y/N): ");
+            String confirm = scanner.nextLine().trim().toUpperCase();
+            if (!confirm.equals("Y")) {
+                System.out.println("Đã hủy xóa khóa học.");
+                return;
+            }
+
             courseService.deleteCourse(id);
             System.out.println("Xóa khóa học thành công!");
         } catch (DatabaseException | ValidationException e) {

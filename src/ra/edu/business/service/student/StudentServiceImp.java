@@ -24,20 +24,13 @@ public class StudentServiceImp implements IStudentService {
     }
 
     @Override
-    public void updateStudent(Student student, String password) throws ValidationException, DatabaseException {
-        StudentValidator.validate(student);
-        int result = studentDAO.updateStudent(student, password);
-        if (result == 0) {
-            throw new DatabaseException("Học viên không tồn tại.");
-        }
+    public void updateStudent(Student student, String password) throws DatabaseException {
+        studentDAO.updateStudent(student, password);
     }
 
     @Override
     public void deleteStudent(int id) throws DatabaseException {
-        int result = studentDAO.deleteStudent(id);
-        if (result == 0) {
-            throw new DatabaseException("Học viên không tồn tại.");
-        }
+        studentDAO.deleteStudent(id);
     }
 
     @Override

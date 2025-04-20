@@ -1,62 +1,62 @@
 create database COURSE_AND_STUDENT_MANAGEMENT;
 use COURSE_AND_STUDENT_MANAGEMENT;
 create table Account(
-    id int primary key auto_increment,
-    email varchar(100) not null unique,
-    password varchar(255) not null,
-    role enum('ADMIN','STUDENT'),
-    status enum('ACTIVE','INACTIVE', 'BLOCKED')
+                        id int primary key auto_increment,
+                        email varchar(100) not null unique,
+                        password varchar(255) not null,
+                        role enum('ADMIN','STUDENT'),
+                        status enum('ACTIVE','INACTIVE', 'BLOCKED')
 );
 create table Student(
-    id int primary key auto_increment,
-    name varchar(100) not null,
-    dob date not null,
-    email varchar(100) not null unique,
-    sex bit not null,
-    phone varchar(20) null,
-    create_at date default (now()),
-    status enum('ACTIVE','INACTIVE') default 'ACTIVE'
+                        id int primary key auto_increment,
+                        name varchar(100) not null,
+                        dob date not null,
+                        email varchar(100) not null unique,
+                        sex bit not null,
+                        phone varchar(20) null,
+                        create_at date default (now()),
+                        status enum('ACTIVE','INACTIVE') default 'ACTIVE'
 );
 create table Course(
-    id int primary key auto_increment,
-    name varchar(100) not null,
-    duration int not null,
-    instructor varchar(100) not null,
-    create_at date default (now()),
-    status enum('ACTIVE','INACTIVE') default 'ACTIVE'
+                       id int primary key auto_increment,
+                       name varchar(100) not null,
+                       duration int not null,
+                       instructor varchar(100) not null,
+                       create_at date default (now()),
+                       status enum('ACTIVE','INACTIVE') default 'ACTIVE'
 );
 create table enrollment(
-    id int primary key auto_increment,
-    student_id int,
-    foreign key (student_id) references Student(id),
-    course_id int,
-    foreign key (course_id) references Course(id),
-    registered_at datetime default current_timestamp,
-    status enum('WAITING','DENIED','CANCER','CONFIRM') default 'WAITING'
+                           id int primary key auto_increment,
+                           student_id int,
+                           foreign key (student_id) references Student(id),
+                           course_id int,
+                           foreign key (course_id) references Course(id),
+                           registered_at datetime default current_timestamp,
+                           status enum('WAITING','DENIED','CANCER','CONFIRM') default 'WAITING'
 );
 insert into Account(email, password, role, status) values
-('admin@example.com', 'admin123', 'ADMIN', 'ACTIVE'),
-('student1@example.com', 'pass123', 'STUDENT', 'ACTIVE'),
-('student2@example.com', 'pass123', 'STUDENT', 'INACTIVE'),
-('student3@example.com', 'pass123', 'STUDENT', 'BLOCKED');
+                                                       ('admin@example.com', 'admin123', 'ADMIN', 'ACTIVE'),
+                                                       ('student1@example.com', 'pass123', 'STUDENT', 'ACTIVE'),
+                                                       ('student2@example.com', 'pass123', 'STUDENT', 'INACTIVE'),
+                                                       ('student3@example.com', 'pass123', 'STUDENT', 'BLOCKED');
 
 insert into Student(name, dob, email, sex, phone, status) values
-('Nguyen Van A', '2000-05-12', 'student1@example.com', 1, '0909123456', 'ACTIVE'),
-('Tran Thi B', '1999-08-23', 'student2@example.com', 0, '0912345678', 'ACTIVE'),
-('Le Van C', '2001-01-15', 'student3@example.com', 1, '0987654321', 'INACTIVE');
+                                                              ('Nguyen Van A', '2000-05-12', 'student1@example.com', 1, '0909123456', 'ACTIVE'),
+                                                              ('Tran Thi B', '1999-08-23', 'student2@example.com', 0, '0912345678', 'ACTIVE'),
+                                                              ('Le Van C', '2001-01-15', 'student3@example.com', 1, '0987654321', 'INACTIVE');
 
 insert into Course(name, duration, instructor) values
-('Lập trình C cơ bản', 30, 'Thầy Hùng'),
-('Cơ sở dữ liệu', 40, 'Cô Lan'),
-('Thiết kế Web', 35, 'Thầy Minh'),
-('Python cho người mới', 25, 'Cô Thảo');
+                                                   ('Lập trình C cơ bản', 30, 'Thầy Hùng'),
+                                                   ('Cơ sở dữ liệu', 40, 'Cô Lan'),
+                                                   ('Thiết kế Web', 35, 'Thầy Minh'),
+                                                   ('Python cho người mới', 25, 'Cô Thảo');
 
 insert into enrollment(student_id, course_id, status) values
-(1, 1, 'CONFIRM'),
-(1, 2, 'WAITING'),
-(2, 2, 'CONFIRM'),
-(2, 3, 'DENIED'),
-(3, 4, 'CANCER');
+                                                          (1, 1, 'CONFIRM'),
+                                                          (1, 2, 'WAITING'),
+                                                          (2, 2, 'CONFIRM'),
+                                                          (2, 3, 'DENIED'),
+                                                          (3, 4, 'CANCER');
 
 -- Đăng ký tài khoản
 DELIMITER //
@@ -88,25 +88,38 @@ DELIMITER //
 -- Đăng nhập tài khoản
 DELIMITER //
 create procedure login_account(
-    in p_email varchar(100),
+    in p_email varchar(255),
     in p_password varchar(255),
-    out return_code int,
-    OUT user_role VARCHAR(10),
-    OUT user_email VARCHAR(100)
+    out p_result int,
+    out p_role varchar(50)
 )
 begin
-    declare account_count int;
-    select count(*) into account_count from Account where email = p_email and password = p_password;
-    if account_count = 1 then
-        select role into user_role from Account where email = p_email;
-        if user_role = 'ADMIN' then
-            set return_code = 1; -- Đăng nhập thành công với quyền ADMIN
+    declare v_account_id int default null;
+    declare v_role varchar(50);
+    declare v_status varchar(50);
+
+    select id, role, status
+    into v_account_id, v_role, v_status
+    from account
+    where email = p_email and password = p_password
+    limit 1;
+
+    if v_account_id is not null then
+        if v_status = 'BLOCKED' then
+            set p_result = -1;
+            set p_role = null;
         else
-            select email into user_email from Student where email = p_email;
-            set return_code = 2; -- Đăng nhập thành công với quyền STUDENT
+            if v_status = 'INACTIVE' then
+                update account
+                set status = 'ACTIVE'
+                where id = v_account_id;
+            end if;
+            set p_result = v_account_id;
+            set p_role = v_role;
         end if;
     else
-        set return_code = 0; -- Đăng nhập thất bại
+        set p_result = 0;
+        set p_role = null;
     end if;
 end //
 DELIMITER //
@@ -174,16 +187,19 @@ DELIMITER //
 DELIMITER //
 create procedure delete_course(
     in p_id int,
-    out return_code int
+    out p_result int
 )
 begin
-    declare course_count int;
-    select count(*) into course_count from Course where id = p_id;
-    if course_count = 1 then
-        update Course set status = 'INACTIVE' where id = p_id;
-        set return_code = 1; -- Xoá khoá học thành công
+    -- cập nhật status của khóa học
+    update course
+    set status = 'inactive'
+    where id = p_id and status = 'active';
+
+    -- kiểm tra cập nhật thành công
+    if row_count() > 0 then
+        set p_result = 1;
     else
-        set return_code = 0; -- Khoá học không tồn tại
+        set p_result = 0;
     end if;
 end //
 DELIMITER //
@@ -191,32 +207,34 @@ DELIMITER //
 -- Tìm kiếm khóa học theo tên (hiển thị khoá học có status là ACTIVE)
 DELIMITER //
 create procedure search_course(
-    in p_name varchar(100),
+    in p_name varchar(255),
+    in p_instructor varchar(255),
     in p_page int,
     in p_page_size int,
-    out total_pages int,
-    out return_code int
+    out p_total_pages int
 )
 begin
-    declare total_records int;
-    declare offset_val int;
-    set offset_val = (p_page - 1) * p_page_size;
+    declare v_offset int;
+    -- tính offset
+    set v_offset = (p_page - 1) * p_page_size;
 
-    select count(*) into total_records
+    -- tính tổng số bản ghi
+    select count(*) into @total_records
     from course
-    where name like concat('%', p_name, '%') and status = 'ACTIVE';
-
-    set total_pages = ceil(total_records / p_page_size);
-
-    if total_records > 0 then
-        select * from course
-        where name like concat('%', p_name, '%') and status = 'ACTIVE'
-        limit p_page_size offset offset_val;
-        set return_code = 1; -- tìm thấy khóa học
-    else
-        set return_code = 0; -- không tìm thấy khóa học
-    end if;
+    where status = 'active'
+      and (p_name is null or name like concat('%', p_name, '%'))
+      and (p_instructor is null or instructor like concat('%', p_instructor, '%'));
+    -- tính tổng số trang
+    set p_total_pages = ceil(@total_records / p_page_size);
+    -- lấy danh sách khóa học
+    select *
+    from course
+    where status = 'active'
+      and (p_name is null or name like concat('%', p_name, '%'))
+      and (p_instructor is null or instructor like concat('%', p_instructor, '%'))
+    limit p_page_size offset v_offset;
 end //
+
 DELIMITER //
 
 -- Sắp xếp theo tên khoá học hoặc id (Tăng/giảm dần, chỉ hiển thị khoá học có status là ACTIVE)
@@ -312,8 +330,8 @@ begin
 
     if total_records > 0 then
         select * from student
-            where status = 'ACTIVE'
-            limit p_page_size offset offset_val;
+        where status = 'ACTIVE'
+        limit p_page_size offset offset_val;
         set return_code = 1; -- hiển thị danh sách sinh viên thành công
     else
         set return_code = 0; -- không có sinh viên nào
@@ -337,7 +355,9 @@ begin
     select count(*) into student_count from Student where email = p_email;
     if student_count = 0 then
         insert into Student (name, dob, email, sex, phone, status)
-            values (p_name, p_dob, p_email, p_sex, p_phone, 'ACTIVE');
+        values (p_name, p_dob, p_email, p_sex, p_phone, 'ACTIVE');
+        insert into Account (email, password, role, status)
+        values (p_email, p_password, 'STUDENT', 'INACTIVE');
         set return_code = 1; -- Thêm sinh viên thành công
     elseIf student_count > 0 then
         set return_code = 0; -- Sinh viên đã tồn tại
@@ -351,22 +371,40 @@ DELIMITER //
 DELIMITER //
 create procedure update_student(
     in p_id int,
-    in p_name varchar(100),
+    in p_name varchar(255),
     in p_dob date,
-    in p_email varchar(100),
-    in p_sex bit,
-    in p_phone varchar(20),
+    in p_email varchar(255),
+    in p_sex boolean,
+    in p_phone varchar(255),
     in p_password varchar(255),
-    out return_code int
+    out p_result int
 )
 begin
-    declare student_count int;
-    select count(*) into student_count from Student where id = p_id;
-    if student_count = 1 then
-        update Student set name = p_name , dob = p_dob, email = p_email, sex = p_sex, phone = p_phone where id = p_id;
-        set return_code = 1; -- Cập nhật sinh viên thành công
+    -- cập nhật thông tin học viên
+    update student
+    set name = p_name,
+        dob = p_dob,
+        email = p_email,
+        sex = p_sex,
+        phone = p_phone
+    where id = p_id and status = 'ACTIVE';
+
+    -- kiểm tra cập nhật thành công
+    if row_count() > 0 then
+        -- nếu có mật khẩu mới, cập nhật hoặc thêm vào bảng account
+        if p_password is not null then
+            if exists (select 1 from account where email = p_email) then
+                update account
+                set password = p_password
+                where email = p_email and status = 'ACTIVE';
+            else
+                insert into account (email, password, role, status)
+                values (p_email, p_password, 'STUDENT', 'ACTIVE');
+            end if;
+        end if;
+        set p_result = 1;
     else
-        set return_code = 0; -- Sinh viên không tồn tại
+        set p_result = 0;
     end if;
 end //
 DELIMITER //
@@ -375,16 +413,30 @@ DELIMITER //
 DELIMITER //
 create procedure delete_student(
     in p_id int,
-    out return_code int
+    out p_result int
 )
 begin
-    declare student_count int;
-    select count(*) into student_count from Student where id = p_id;
-    if student_count = 1 then
-        update Student set status = 'INACTIVE' where id = p_id;
-        set return_code = 1; -- Xoá sinh viên thành công
+    declare v_email varchar(255);
+
+    -- lấy email của học viên
+    select email into v_email
+    from student
+    where id = p_id and status = 'ACTIVE';
+
+    -- cập nhật status của học viên
+    update student
+    set status = 'INACTIVE'
+    where id = p_id and status = 'ACTIVE';
+
+    -- kiểm tra cập nhật thành công
+    if row_count() > 0 then
+        -- cập nhật status của tài khoản liên quan
+        update account
+        set status = 'INACTIVE'
+        where email = v_email and status = 'ACTIVE';
+        set p_result = 1;
     else
-        set return_code = 0; -- Sinh viên không tồn tại
+        set p_result = 0;
     end if;
 end //
 DELIMITER //
@@ -392,45 +444,39 @@ DELIMITER //
 -- Tìm kiếm học viên theo tên, email hoặc id (Tương đối, chỉ hiện những sinh viên có status là ACTIVE)
 DELIMITER //
 create procedure search_student(
-    in p_name varchar(100),
-    in p_email varchar(100),
+    in p_name varchar(255),
+    in p_email varchar(255),
     in p_id int,
     in p_page int,
     in p_page_size int,
-    out total_pages int,
-    out return_code int
+    out p_total_pages int
 )
 begin
-    declare total_records int;
-    declare offset_val int;
-    set offset_val = (p_page - 1) * p_page_size;
+    declare v_offset int;
 
-    select count(*) into total_records
+    -- tính offset
+    set v_offset = (p_page - 1) * p_page_size;
+
+    -- tính tổng số bản ghi
+    select count(*) into @total_records
     from student
     where status = 'ACTIVE'
-      and (
-        name like concat('%', p_name, '%')
-            or email like concat('%', p_email, '%')
-            or id = p_id or p_id = 0
-        );
+      and (p_name is null or name like concat('%', p_name, '%'))
+      and (p_email is null or email like concat('%', p_email, '%'))
+      and (p_id = 0 or id = p_id);
 
-    set total_pages = ceil(total_records / p_page_size);
+    -- tính tổng số trang
+    set p_total_pages = ceil(@total_records / p_page_size);
 
-    if total_records > 0 then
-        select * from student
-        where status = 'ACTIVE'
-          and (
-            name like concat('%', p_name, '%')
-                or email like concat('%', p_email, '%')
-                or id = p_id or p_id = 0
-            )
-        limit p_page_size offset offset_val;
-        set return_code = 1; -- tìm thấy sinh viên
-    else
-        set return_code = 0; -- không tìm thấy sinh viên
-    end if;
+    -- lấy danh sách học viên
+    select *
+    from student
+    where status = 'ACTIVE'
+      and (p_name is null or name like concat('%', p_name, '%'))
+      and (p_email is null or email like concat('%', p_email, '%'))
+      and (p_id = 0 or id = p_id)
+    limit p_page_size offset v_offset;
 end //
-
 DELIMITER //
 
 -- Sắp xếp theo tên hoặc id (Tăng hoặc giảm dần, chỉ hiện những sinh viên có status là ACTIVE)
@@ -456,15 +502,15 @@ begin
             select * from student where status = 'ACTIVE'
             order by name asc
             limit p_page_size offset offset_val;
-    else
-    select * from student where status = 'ACTIVE'
-        order by name desc
-        limit p_page_size offset offset_val;
-    end if;
-    set return_code = 1; -- sắp xếp theo tên thành công
+        else
+            select * from student where status = 'ACTIVE'
+            order by name desc
+            limit p_page_size offset offset_val;
+        end if;
+        set return_code = 1; -- sắp xếp theo tên thành công
     elseif p_sort_by = 2 then -- sắp xếp theo id
         if p_is_asc = 1 then
-        select * from student where status = 'ACTIVE'
+            select * from student where status = 'ACTIVE'
             order by id asc
             limit p_page_size offset offset_val;
         else
@@ -472,7 +518,7 @@ begin
             order by id desc
             limit p_page_size offset offset_val;
         end if;
-            set return_code = 1; -- sắp xếp theo id thành công
+        set return_code = 1; -- sắp xếp theo id thành công
     else
         set return_code = 0; -- không hợp lệ
     end if;
@@ -703,6 +749,7 @@ begin
 
     select id into p_student_id
     from student
-    where email = p_email and status = 'active';
+    where email = p_email and status = 'ACTIVE';
 end //
 DELIMITER //
+

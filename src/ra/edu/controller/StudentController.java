@@ -17,7 +17,7 @@ import java.util.Scanner;
 public class StudentController {
     private IStudentService studentService = new StudentServiceImp();
     private static final int PAGE_SIZE = 2;
-
+    private Scanner scanner = new Scanner(System.in);
     public void addStudent() {
         try {
             Student student = new Student();
@@ -38,6 +38,15 @@ public class StudentController {
 
     public void updateStudent() {
         try {
+            // Hiển thị danh sách học viên
+            System.out.println("\nDanh sách học viên hiện tại:");
+            int page = 1;
+            int[] totalPages = new int[1];
+            List<Student> students = studentService.displayStudents(page, PAGE_SIZE, totalPages);
+            TableFormatter.displayStudents(students);
+            System.out.println("Trang: " + page + "/" + totalPages[0]);
+
+            // Nhập thông tin cập nhật
             Student student = new Student();
             student.setId(InputUtil.getPositiveInt("Nhập ID học viên: "));
             student.setName(InputUtil.getNonEmptyString("Nhập tên học viên: "));
@@ -57,7 +66,22 @@ public class StudentController {
 
     public void deleteStudent() {
         try {
+            // Hiển thị danh sách học viên
+            System.out.println("\nDanh sách học viên hiện tại:");
+            int page = 1;
+            int[] totalPages = new int[1];
+            List<Student> students = studentService.displayStudents(page, PAGE_SIZE, totalPages);
+            TableFormatter.displayStudents(students);
+            System.out.println("Trang: " + page + "/" + totalPages[0]);
+
+            // Nhập ID và xác nhận
             int id = InputUtil.getPositiveInt("Nhập ID học viên: ");
+            System.out.print("Bạn có chắc chắn muốn xóa học viên này? (Y/N): ");
+            String confirm = scanner.nextLine().trim().toUpperCase();
+            if (!confirm.equals("Y")) {
+                System.out.println("Đã hủy xóa học viên.");
+                return;
+            }
             studentService.deleteStudent(id);
             System.out.println("Xóa học viên thành công!");
         } catch (DatabaseException | ValidationException e) {
@@ -126,7 +150,7 @@ public class StudentController {
     public void sortStudent() {
         try {
             int sortBy = InputUtil.getChoice(1, 2, "Chọn tiêu chí sắp xếp (1: Tên, 2: Ngày sinh): ");
-            boolean isAsc = InputUtil.getBoolean("Sắp xếp tăng dần? (Nam/Nữ): ");
+            boolean isAsc = InputUtil.getBoolean("Sắp xếp? (1: tăng/0: giảm): ");
             int page = 1;
             int[] totalPages = new int[1];
             while (true) {

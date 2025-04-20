@@ -40,7 +40,7 @@ public class StudentDAOImp implements IStudentDAO {
     }
 
     @Override
-    public int updateStudent(Student student, String password) throws DatabaseException {
+    public void updateStudent(Student student, String password) throws DatabaseException {
         Connection conn = null;
         CallableStatement stmt = null;
         try {
@@ -49,15 +49,17 @@ public class StudentDAOImp implements IStudentDAO {
             stmt = conn.prepareCall("{CALL update_student(?,?,?,?,?,?,?,?)}");
             stmt.setInt(1, student.getId());
             stmt.setString(2, student.getName());
-            stmt.setDate(3, Date.valueOf(student.getDob()));
+            stmt.setObject(3, student.getDob());
             stmt.setString(4, student.getEmail());
             stmt.setBoolean(5, student.isSex());
             stmt.setString(6, student.getPhone());
             stmt.setString(7, password);
-            stmt.registerOutParameter(8, Types.INTEGER);
+            stmt.registerOutParameter(8, java.sql.Types.INTEGER);
             stmt.execute();
+            if (stmt.getInt(8) <= 0) {
+                throw new DatabaseException("Cập nhật học viên thất bại.");
+            }
             conn.commit();
-            return stmt.getInt(8);
         } catch (SQLException e) {
             try {
                 if (conn != null) conn.rollback();
@@ -71,7 +73,7 @@ public class StudentDAOImp implements IStudentDAO {
     }
 
     @Override
-    public int deleteStudent(int id) throws DatabaseException {
+    public void deleteStudent(int id) throws DatabaseException {
         Connection conn = null;
         CallableStatement stmt = null;
         try {
@@ -79,10 +81,12 @@ public class StudentDAOImp implements IStudentDAO {
             conn.setAutoCommit(false);
             stmt = conn.prepareCall("{CALL delete_student(?,?)}");
             stmt.setInt(1, id);
-            stmt.registerOutParameter(2, Types.INTEGER);
+            stmt.registerOutParameter(2, java.sql.Types.INTEGER);
             stmt.execute();
+            if (stmt.getInt(2) <= 0) {
+                throw new DatabaseException("Xóa học viên thất bại.");
+            }
             conn.commit();
-            return stmt.getInt(2);
         } catch (SQLException e) {
             try {
                 if (conn != null) conn.rollback();

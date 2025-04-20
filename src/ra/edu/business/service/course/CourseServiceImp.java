@@ -32,10 +32,7 @@ public class CourseServiceImp implements ICourseService {
 
     @Override
     public void deleteCourse(int id) throws DatabaseException {
-        int result = courseDAO.deleteCourse(id);
-        if (result == 0) {
-            throw new DatabaseException("Khóa học không tồn tại.");
-        }
+        courseDAO.deleteCourse(id);
     }
 
     @Override

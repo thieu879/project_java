@@ -65,7 +65,7 @@ public class CourseDAOImp implements ICourseDAO {
     }
 
     @Override
-    public int deleteCourse(int id) throws DatabaseException {
+    public void deleteCourse(int id) throws DatabaseException {
         Connection conn = null;
         CallableStatement stmt = null;
         try {
@@ -73,10 +73,12 @@ public class CourseDAOImp implements ICourseDAO {
             conn.setAutoCommit(false);
             stmt = conn.prepareCall("{CALL delete_course(?,?)}");
             stmt.setInt(1, id);
-            stmt.registerOutParameter(2, Types.INTEGER);
+            stmt.registerOutParameter(2, java.sql.Types.INTEGER);
             stmt.execute();
+            if (stmt.getInt(2) <= 0) {
+                throw new DatabaseException("Xóa khóa học thất bại.");
+            }
             conn.commit();
-            return stmt.getInt(2);
         } catch (SQLException e) {
             try {
                 if (conn != null) conn.rollback();

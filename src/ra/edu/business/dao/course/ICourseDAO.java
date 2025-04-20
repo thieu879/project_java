@@ -8,7 +8,7 @@ import java.util.List;
 public interface ICourseDAO {
     int addCourse(Course course) throws DatabaseException;
     int updateCourse(Course course) throws DatabaseException;
-    int deleteCourse(int id) throws DatabaseException;
+    void deleteCourse(int id) throws DatabaseException;
     List<Course> searchCourse(String name, String instructor, int page, int pageSize, int[] totalPages) throws DatabaseException;
     List<Course> sortCourse(int sortBy, boolean isAsc, int page, int pageSize, int[] totalPages) throws DatabaseException;
     List<Course> displayCourses(int page, int pageSize, int[] totalPages) throws DatabaseException;
