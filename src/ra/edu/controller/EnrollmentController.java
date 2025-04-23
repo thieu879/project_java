@@ -1,7 +1,9 @@
 package ra.edu.controller;
 
 import ra.edu.business.model.Course;
+import ra.edu.business.model.Enrollment;
 import ra.edu.business.model.Student;
+import ra.edu.business.service.course.CourseServiceImp;
 import ra.edu.business.service.enrollment.EnrollmentServiceImp;
 import ra.edu.business.service.enrollment.IEnrollmentService;
 import ra.edu.exception.DatabaseException;
@@ -11,10 +13,12 @@ import ra.edu.utils.Session;
 import ra.edu.utils.TableFormatter;
 
 import java.util.List;
+import java.util.Scanner;
 
 public class EnrollmentController {
     private IEnrollmentService enrollmentService = new EnrollmentServiceImp();
     private static final int PAGE_SIZE = 2;
+    private Scanner scanner = new Scanner(System.in);
 
     public void addStudentToCourse() {
         try {
@@ -114,18 +118,60 @@ public class EnrollmentController {
         }
     }
 
-    public void displayStatistics() {
+    public void displayCountCoursesAndStudents() {
         try {
             int[] counts = enrollmentService.countCoursesAndStudents();
             System.out.println("Tổng số khóa học: " + counts[0]);
             System.out.println("Tổng số học viên: " + counts[1]);
+        } catch (DatabaseException e) {
+            System.out.println("Lỗi: " + e.getMessage());
+        }
+    }
 
+    public void displayTop5CoursesByStudents() {
+        try {
             List<Object[]> top5Courses = enrollmentService.top5CoursesByStudents();
             TableFormatter.displayStatistics(top5Courses, "Top 5 khóa học có nhiều học viên nhất", "Tên khóa học", "Số học viên");
+        } catch (DatabaseException e) {
+            System.out.println("Lỗi: " + e.getMessage());
+        }
+    }
 
+    public void displayCoursesWithMoreThan10Students() {
+        try {
             List<Object[]> coursesWithMoreThan10 = enrollmentService.coursesWithMoreThan10Students();
             TableFormatter.displayStatistics(coursesWithMoreThan10, "Khóa học có trên 10 học viên", "Tên khóa học", "Số học viên");
         } catch (DatabaseException e) {
+            System.out.println("Lỗi: " + e.getMessage());
+        }
+    }
+
+    public void approveStudentEnrollment() {
+        try {
+            // Nhập courseId và hiển thị danh sách sinh viên đang chờ
+            int courseId = InputUtil.getPositiveInt("Nhập ID khóa học: ");
+            System.out.println("\nDanh sách sinh viên đang chờ duyệt cho khóa học " + courseId + ":");
+            int page = 1;
+            String status = "WAITING";
+            int[] totalPages = new int[1];
+            List<Student> students = enrollmentService.displayWaitingStudentsByCourse(courseId, page, PAGE_SIZE, totalPages);
+            TableFormatter.displayStudents(students);
+            System.out.println("Trang: " + page + "/" + totalPages[0]);
+
+            // Nhập studentId và xác nhận
+            int studentId = InputUtil.getPositiveInt("Nhập ID sinh viên cần duyệt: ");
+            System.out.print("Bạn có chắc chắn muốn duyệt sinh viên này cho khóa học? (Y/N): ");
+            String confirm = scanner.nextLine().trim().toUpperCase();
+            if (!confirm.equals("Y")) {
+                status = "DENIED";
+                enrollmentService.approveStudentEnrollment(courseId, studentId, status);
+                System.out.println("Đã hủy duyệt sinh viên.");
+                return;
+            }
+            status = "CONFIRM";
+            enrollmentService.approveStudentEnrollment(courseId, studentId, status);
+            System.out.println("Duyệt sinh viên thành công!");
+        } catch (DatabaseException | ValidationException e) {
             System.out.println("Lỗi: " + e.getMessage());
         }
     }

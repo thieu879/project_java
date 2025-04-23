@@ -201,11 +201,4 @@ public class StudentController {
         System.out.println("2. Trang trước");
         System.out.println("3. Quay lại");
     }
-    private void displaySearchStucentMenu() {
-        System.out.println("\n=== MENU TÌM KIẾM SINH VIÊN ===");
-        System.out.println("1. Tìm kiếm theo tên");
-        System.out.println("2. Tìm kiếm theo email");
-        System.out.println("3. Tìm kiếm theo mã sinh viên");
-        System.out.println("4. Quay lại");
-    }
 }

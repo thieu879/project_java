@@ -87,4 +87,14 @@ public class EnrollmentServiceImp implements IEnrollmentService {
     public List<Object[]> coursesWithMoreThan10Students() throws DatabaseException {
         return enrollmentDAO.coursesWithMoreThan10Students();
     }
+
+    @Override
+    public List<Student> displayWaitingStudentsByCourse(int courseId, int page, int pageSize, int[] totalPages) throws DatabaseException {
+        return enrollmentDAO.displayWaitingStudentsByCourse(courseId, page, pageSize, totalPages);
+    }
+
+    @Override
+    public void approveStudentEnrollment(int courseId, int studentId, String status) throws DatabaseException {
+        enrollmentDAO.approveStudentEnrollment(courseId, studentId, status);
+    }
 }

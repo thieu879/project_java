@@ -17,4 +17,6 @@ public interface IEnrollmentDAO {
     int countStudentsByCourse(int courseId) throws DatabaseException;
     List<Object[]> top5CoursesByStudents() throws DatabaseException;
     List<Object[]> coursesWithMoreThan10Students() throws DatabaseException;
+    List<Student> displayWaitingStudentsByCourse(int courseId, int page, int pageSize, int[] totalPages) throws DatabaseException;
+    void approveStudentEnrollment(int courseId, int studentId, String status) throws DatabaseException;
 }

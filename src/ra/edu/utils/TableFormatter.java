@@ -1,6 +1,7 @@
 package ra.edu.utils;
 
 import ra.edu.business.model.Course;
+import ra.edu.business.model.Enrollment;
 import ra.edu.business.model.Student;
 
 import java.util.List;

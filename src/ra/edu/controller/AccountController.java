@@ -61,9 +61,10 @@ public class AccountController {
             if (!Session.isLoggedIn() || !Session.getUserRole().equals("STUDENT")) {
                 throw new ValidationException("Chỉ học viên đang đăng nhập mới có thể đổi mật khẩu.");
             }
+            String oldEmail = InputUtil.getNonEmptyString("Nhập mật khẩu cũ: ");
             String oldPassword = InputUtil.getNonEmptyString("Nhập mật khẩu cũ: ");
             String newPassword = InputUtil.getNonEmptyString("Nhập mật khẩu mới: ");
-            accountService.changeStudentPassword(Session.getUserEmail(), oldPassword, newPassword);
+            accountService.changeStudentPassword(oldEmail, oldPassword, newPassword);
             System.out.println("Đổi mật khẩu thành công!");
         } catch (ValidationException | DatabaseException e) {
             System.out.println("Lỗi: " + e.getMessage());

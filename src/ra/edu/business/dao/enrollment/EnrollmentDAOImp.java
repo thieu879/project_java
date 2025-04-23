@@ -307,4 +307,75 @@ public class EnrollmentDAOImp implements IEnrollmentDAO {
             ConnectionDB.closeConnection(conn, stmt);
         }
     }
+
+    @Override
+    public List<Student> displayWaitingStudentsByCourse(int courseId, int page, int pageSize, int[] totalPages) throws DatabaseException {
+        Connection conn = null;
+        CallableStatement stmt = null;
+        ResultSet rs = null;
+        List<Student> students = new ArrayList<>();
+        try {
+            conn = ConnectionDB.openConnection();
+            stmt = conn.prepareCall("{CALL view_waiting_students(?,?,?,?,?)}");
+            stmt.setInt(1, courseId);
+            stmt.setInt(2, page);
+            stmt.setInt(3, pageSize);
+            stmt.registerOutParameter(4, java.sql.Types.INTEGER);
+            stmt.registerOutParameter(5, java.sql.Types.INTEGER);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Student student = new Student();
+                student.setId(rs.getInt("id"));
+                student.setName(rs.getString("name"));
+                student.setDob(rs.getDate("dob").toLocalDate());
+                student.setEmail(rs.getString("email"));
+                student.setSex(rs.getBoolean("sex"));
+                student.setPhone(rs.getString("phone"));
+                student.setCreateAt(rs.getDate("create_at").toLocalDate());
+                student.setStatus(rs.getString("status"));
+                students.add(student);
+            }
+
+            totalPages[0] = stmt.getInt(4);
+            int returnCode = stmt.getInt(5);
+            if (returnCode == 0 && students.isEmpty()) {
+                throw new DatabaseException("Không có sinh viên nào đang chờ duyệt cho khóa học này.");
+            }
+            return students;
+        } catch (SQLException e) {
+            throw new DatabaseException("Lỗi khi hiển thị sinh viên đang chờ duyệt: " + e.getMessage());
+        } finally {
+            ConnectionDB.closeConnection(conn, stmt);
+        }
+    }
+
+    @Override
+    public void approveStudentEnrollment(int courseId, int studentId, String status) throws DatabaseException {
+        Connection conn = null;
+        CallableStatement stmt = null;
+        try {
+            conn = ConnectionDB.openConnection();
+            conn.setAutoCommit(false);
+            stmt = conn.prepareCall("{CALL approve_student_registration(?,?,?,?)}");
+            stmt.setInt(2, courseId);
+            stmt.setInt(1, studentId);
+            stmt.setString(3, status);
+            stmt.registerOutParameter(4, java.sql.Types.INTEGER);
+            stmt.execute();
+            if (stmt.getInt(4) <= 0) {
+                throw new DatabaseException("Duyệt sinh viên thất bại.");
+            }
+            conn.commit();
+        } catch (SQLException e) {
+            try {
+                if (conn != null) conn.rollback();
+            } catch (SQLException ex) {
+                throw new DatabaseException("Lỗi rollback: " + ex.getMessage());
+            }
+            throw new DatabaseException("Lỗi khi duyệt sinh viên: " + e.getMessage());
+        } finally {
+            ConnectionDB.closeConnection(conn, stmt);
+        }
+    }
 }

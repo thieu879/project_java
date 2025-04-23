@@ -70,7 +70,7 @@ public class Menu {
                         manageEnrollments();
                         break;
                     case 4:
-                        enrollmentController.displayStatistics();
+                        displayStatistics();
                         break;
                     case 5:
                         accountController.logoutAccount();
@@ -82,6 +82,37 @@ public class Menu {
         }
     }
 
+    private void displayStatistics() {
+        while (true) {
+            System.out.println("\n=== MENU THỐNG KÊ ===");
+            System.out.println("1. Thống kê tổng số lượng khóa học và tổng số học viên");
+            System.out.println("2. Thống kê tổng số học viên theo từng khóa");
+            System.out.println("3. Thống kê top 5 khóa học đông sinh viên nhất");
+            System.out.println("4. Liệt kê các khóa học có trên 10 học viên");
+            System.out.println("5. Quay lại");
+            try {
+                int choice = InputUtil.getChoice(1, 5, "Chọn chức năng: ");
+                switch (choice) {
+                    case 1:
+                        enrollmentController.displayCountCoursesAndStudents();
+                        break;
+                    case 2:
+                        enrollmentController.countStudentsByCourse();
+                        break;
+                    case 3:
+                        enrollmentController.displayTop5CoursesByStudents();
+                        break;
+                    case 4:
+                        enrollmentController.displayCoursesWithMoreThan10Students();
+                        break;
+                    case 5:
+                        return;
+                }
+            } catch (Exception e) {
+                System.out.println("Lỗi: " + e.getMessage());
+            }
+        }
+    }
     private void displayStudentMenu() {
         while (true) {
             System.out.println("\n=== MENU HỌC VIÊN ===");
@@ -90,9 +121,10 @@ public class Menu {
             System.out.println("3. Xem khóa học đã đăng ký");
             System.out.println("4. Hủy đăng ký khóa học");
             System.out.println("5. Đổi mật khẩu");
-            System.out.println("6. Đăng xuất");
+            System.out.println("6. Tìm kiếm khoá học");
+            System.out.println("7. Đăng xuất");
             try {
-                int choice = InputUtil.getChoice(1, 6, "Chọn chức năng: ");
+                int choice = InputUtil.getChoice(1, 7, "Chọn chức năng: ");
                 switch (choice) {
                     case 1:
                         courseController.displayCourses();
@@ -110,6 +142,9 @@ public class Menu {
                         accountController.changeStudentPassword();
                         break;
                     case 6:
+                        courseController.searchCourse();
+                        break;
+                    case 7:
                         accountController.logoutAccount();
                         return;
                 }
@@ -216,9 +251,10 @@ public class Menu {
             System.out.println("2. Xóa học viên khỏi khóa học");
             System.out.println("3. Xem học viên theo khóa học");
             System.out.println("4. Xem số học viên theo khóa học");
-            System.out.println("5. Quay lại");
+            System.out.println("5. Duyệt sinh viên đăng ký khoá học");
+            System.out.println("6. Quay lại");
             try {
-                int choice = InputUtil.getChoice(1, 5, "Chọn chức năng: ");
+                int choice = InputUtil.getChoice(1, 6, "Chọn chức năng: ");
                 switch (choice) {
                     case 1:
                         enrollmentController.addStudentToCourse();
@@ -233,6 +269,8 @@ public class Menu {
                         enrollmentController.countStudentsByCourse();
                         break;
                     case 5:
+                        enrollmentController.approveStudentEnrollment();
+                    case 6:
                         return;
                 }
             } catch (Exception e) {
