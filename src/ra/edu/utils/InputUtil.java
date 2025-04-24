@@ -23,12 +23,15 @@ public class InputUtil {
     }
 
     public static String getNonEmptyString(String prompt) throws ValidationException {
-        System.out.print(prompt);
-        String input = scanner.nextLine();
-        if (input.trim().isEmpty()) {
-            throw new ValidationException("Dữ liệu không được để trống.");
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine();
+            if (input.trim().isEmpty()) {
+                System.out.println("Dữ liệu không được để trống.");
+            }else {
+                return input;
+            }
         }
-        return input;
     }
 
     public static LocalDate getValidDate(String prompt) throws ValidationException {

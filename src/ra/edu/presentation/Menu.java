@@ -156,7 +156,8 @@ public class Menu {
 
     private void handleLogin() {
         if (accountController.loginAccount()) {
-            System.out.println("Đăng nhập thành công! Vai trò: " + Session.getUserRole());
+            String name = accountController.getStudentNameByEmail();
+            System.out.println("Đăng nhập thành công! Vai trò: " + Session.getUserRole() + " và có tên là: " + name);
         }
     }
 

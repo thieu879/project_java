@@ -116,4 +116,28 @@ public class AccountDAOImp implements IAccountDAO {
             ConnectionDB.closeConnection(conn, stmt);
         }
     }
+    @Override
+    public String getStudentNameByEmail(String email) throws DatabaseException {
+        Connection conn = null;
+        CallableStatement stmt = null;
+        try {
+            conn = ConnectionDB.openConnection();
+            conn.setAutoCommit(false);
+            stmt = conn.prepareCall("{CALL get_student_name_by_email(?,?)}");
+            stmt.setString(1, email);
+            stmt.registerOutParameter(2, Types.VARCHAR);
+            stmt.execute();
+            conn.commit();
+            return stmt.getString(2);
+        } catch (SQLException e) {
+            try {
+                if (conn != null) conn.rollback();
+            } catch (SQLException ex) {
+                throw new DatabaseException("Lỗi rollback: " + ex.getMessage());
+            }
+            throw new DatabaseException("Lỗi khi lấy tên học viên: " + e.getMessage());
+        } finally {
+            ConnectionDB.closeConnection(conn, stmt);
+        }
+    }
 }

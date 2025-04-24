@@ -8,4 +8,5 @@ public interface IAccountService {
     int loginAccount(String email, String password, String[] userRole, String[] userEmail) throws ValidationException, DatabaseException;
     void logoutAccount(String email) throws DatabaseException;
     void changeStudentPassword(String email, String oldPassword, String newPassword) throws ValidationException, DatabaseException;
+    String getStudentNameByEmail(String email) throws DatabaseException;
 }

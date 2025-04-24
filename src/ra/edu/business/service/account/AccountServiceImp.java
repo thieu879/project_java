@@ -46,4 +46,13 @@ public class AccountServiceImp implements IAccountService {
             throw new DatabaseException("Tài khoản không tồn tại hoặc mật khẩu cũ không đúng.");
         }
     }
+
+    @Override
+    public String getStudentNameByEmail(String email) throws DatabaseException {
+        String studentName = accountDAO.getStudentNameByEmail(email);
+        if (studentName == null) {
+            throw new DatabaseException("Tên không có trong email.");
+        }
+        return studentName;
+    }
 }

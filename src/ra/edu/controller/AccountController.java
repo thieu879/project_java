@@ -14,8 +14,8 @@ public class AccountController {
         try {
             String email = InputUtil.getNonEmptyString("Nhập email: ");
             String password = InputUtil.getNonEmptyString("Nhập mật khẩu: ");
-            String role = InputUtil.getNonEmptyString("Nhập vai trò (ADMIN/STUDENT): ").toUpperCase();
-            accountService.registerAccount(email, password, role);
+//            String role = InputUtil.getNonEmptyString("Nhập vai trò (ADMIN/STUDENT): ").toUpperCase();
+            accountService.registerAccount(email, password, "STUDENT");
             System.out.println("Đăng ký tài khoản thành công!");
         } catch (ValidationException | DatabaseException e) {
             System.out.println("Lỗi: " + e.getMessage());
@@ -70,4 +70,17 @@ public class AccountController {
             System.out.println("Lỗi: " + e.getMessage());
         }
     }
+    public String getStudentNameByEmail() {
+        try {
+            String email = Session.getUserEmail();
+            if (email == null || !Session.getUserRole().equals("STUDENT")) {
+                return "N/A"; // Không phải sinh viên hoặc chưa đăng nhập
+            }
+            String name = accountService.getStudentNameByEmail(email);
+            return name != null ? name : "Không tìm thấy tên";
+        } catch (DatabaseException e) {
+            System.out.println("Lỗi khi lấy tên sinh viên: " + e.getMessage());
+            return "N/A";
+        }
+    }  
 }

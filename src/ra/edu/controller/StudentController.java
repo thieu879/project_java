@@ -128,12 +128,18 @@ public class StudentController {
                             TableFormatter.displayStudents(students);
                             System.out.println("Trang: " + page + "/" + totalPages[0]);
                             displayPagingMenu();
-                            int pagingChoice = InputUtil.getChoice(1, 3, "Chọn chức năng: ");
+                            int pagingChoice = InputUtil.getChoice(1, 4, "Chọn chức năng: ");
                             if (pagingChoice == 1 && page < totalPages[0]) {
                                 page++;
                             } else if (pagingChoice == 2 && page > 1) {
                                 page--;
                             } else if (pagingChoice == 3) {
+                                page = InputUtil.getPositiveInt("Nhập số trang muốn chuyển đến (1-" + totalPages[0] + "): ");
+                                if (page < 1 || page > totalPages[0]) {
+                                    System.out.println("Số trang không hợp lệ. Vui lòng nhập từ 1 đến " + totalPages[0] + ".");
+                                    page = Math.max(1, Math.min(page, totalPages[0]));
+                                }
+                            } else if (pagingChoice == 4) {
                                 break;
                             }
                         }
@@ -158,12 +164,18 @@ public class StudentController {
                 TableFormatter.displayStudents(students);
                 System.out.println("Trang: " + page + "/" + totalPages[0]);
                 displayPagingMenu();
-                int choice = InputUtil.getChoice(1, 3, "Chọn chức năng: ");
+                int choice = InputUtil.getChoice(1, 4, "Chọn chức năng: ");
                 if (choice == 1 && page < totalPages[0]) {
                     page++;
                 } else if (choice == 2 && page > 1) {
                     page--;
                 } else if (choice == 3) {
+                    page = InputUtil.getPositiveInt("Nhập số trang muốn chuyển đến (1-" + totalPages[0] + "): ");
+                    if (page < 1 || page > totalPages[0]) {
+                        System.out.println("Số trang không hợp lệ. Vui lòng nhập từ 1 đến " + totalPages[0] + ".");
+                        page = Math.max(1, Math.min(page, totalPages[0]));
+                    }
+                } else if (choice == 4) {
                     break;
                 }
             }
@@ -181,12 +193,18 @@ public class StudentController {
                 TableFormatter.displayStudents(students);
                 System.out.println("Trang: " + page + "/" + totalPages[0]);
                 displayPagingMenu();
-                int choice = InputUtil.getChoice(1, 3, "Chọn chức năng: ");
+                int choice = InputUtil.getChoice(1, 4, "Chọn chức năng: ");
                 if (choice == 1 && page < totalPages[0]) {
                     page++;
                 } else if (choice == 2 && page > 1) {
                     page--;
                 } else if (choice == 3) {
+                    page = InputUtil.getPositiveInt("Nhập số trang muốn chuyển đến (1-" + totalPages[0] + "): ");
+                    if (page < 1 || page > totalPages[0]) {
+                        System.out.println("Số trang không hợp lệ. Vui lòng nhập từ 1 đến " + totalPages[0] + ".");
+                        page = Math.max(1, Math.min(page, totalPages[0]));
+                    }
+                } else if (choice == 4) {
                     break;
                 }
             }
@@ -199,6 +217,7 @@ public class StudentController {
         System.out.println("\n=== MENU PHÂN TRANG ===");
         System.out.println("1. Trang tiếp");
         System.out.println("2. Trang trước");
-        System.out.println("3. Quay lại");
+        System.out.println("3. Chuyển đến trang");
+        System.out.println("4. Quay lại");
     }
 }

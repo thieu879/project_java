@@ -7,4 +7,5 @@ public interface IAccountDAO {
     int loginAccount(String email, String password, String[] userRole, String[] userEmail) throws DatabaseException;
     int logoutAccount(String email) throws DatabaseException;
     int changeStudentPassword(String email, String oldPassword, String newPassword) throws DatabaseException;
+    String getStudentNameByEmail(String email) throws DatabaseException;
 }
