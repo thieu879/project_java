@@ -3,6 +3,7 @@ package ra.edu.validate;
 import ra.edu.business.model.Account;
 import ra.edu.business.model.Role;
 import ra.edu.exception.ValidationException;
+import ra.edu.utils.PrintError;
 
 import java.util.regex.Pattern;
 
@@ -25,24 +26,30 @@ public class AccountValidator {
         }
     }
 
-    public static void validateLogin(String email, String password) throws ValidationException {
+    public static void validateEmail(String email) throws ValidationException{
         if (email == null || !Pattern.matches(EMAIL_REGEX, email)) {
             throw new ValidationException("Email không hợp lệ.");
         }
+    }
+
+    public static void validateLogin(String email, String password) throws ValidationException {
+        if (email == null || !Pattern.matches(EMAIL_REGEX, email)) {
+            PrintError.println("Email không hợp lệ.");
+        }
         if (password == null || password.length() < MIN_PASSWORD_LENGTH) {
-            throw new ValidationException("Mật khẩu phải có ít nhất " + MIN_PASSWORD_LENGTH + " ký tự.");
+            PrintError.println("Mật khẩu phải có ít nhất " + MIN_PASSWORD_LENGTH + " ký tự.");
         }
     }
 
     public static void validateChangePassword(String email, String oldPassword, String newPassword) throws ValidationException {
         if (email == null || !Pattern.matches(EMAIL_REGEX, email)) {
-            throw new ValidationException("Email không hợp lệ.");
+            PrintError.println("Email không hợp lệ.");
         }
         if (oldPassword == null || oldPassword.length() < MIN_PASSWORD_LENGTH) {
-            throw new ValidationException("Mật khẩu cũ không hợp lệ.");
+            PrintError.println("Mật khẩu cũ không hợp lệ.");
         }
         if (newPassword == null || newPassword.length() < MIN_PASSWORD_LENGTH) {
-            throw new ValidationException("Mật khẩu mới phải có ít nhất " + MIN_PASSWORD_LENGTH + " ký tự.");
+            PrintError.println("Mật khẩu mới phải có ít nhất " + MIN_PASSWORD_LENGTH + " ký tự.");
         }
     }
 }

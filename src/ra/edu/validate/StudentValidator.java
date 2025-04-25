@@ -24,7 +24,7 @@ public class StudentValidator {
             throw new ValidationException("Email không hợp lệ.");
         }
         if (student.getPhone() != null && !student.getPhone().isEmpty() && !Pattern.matches(PHONE_REGEX, student.getPhone())) {
-            throw new ValidationException("Số điện thoại phải có 10-11 chữ số.");
+            throw new ValidationException("Số điện thoại phải có 10-11 chữ số và đúng định dạng số Việt Nam.");
         }
     }
 }

@@ -27,7 +27,7 @@ public class AccountController {
 
     public boolean loginAccount() {
         try {
-            String email = InputUtil.getNonEmptyString("Nhập email: ");
+            String email = InputUtil.validateEmail("Nhập email: ");
             String password = InputUtil.getNonEmptyString("Nhập mật khẩu: ");
             String[] userRole = new String[1];
             String[] userEmail = new String[1];

@@ -15,9 +15,9 @@ public class InputUtil {
             try {
                 int value = Integer.parseInt(scanner.nextLine());
                 if (value > 0) return value;
-                throw new ValidationException("Vui lòng nhập số lớn hơn 0.");
+                PrintError.println("Vui lòng nhập số lớn hơn 0.");
             } catch (NumberFormatException e) {
-                throw new ValidationException("Vui lòng nhập số hợp lệ.");
+                PrintError.println("Vui lòng nhập số hợp lệ.");
             }
         }
     }
@@ -27,7 +27,7 @@ public class InputUtil {
             System.out.print(prompt);
             String input = scanner.nextLine();
             if (input.trim().isEmpty()) {
-                System.out.println("Dữ liệu không được để trống.");
+                PrintError.println("Dữ liệu không được để trống.");
             }else {
                 return input;
             }
@@ -40,7 +40,7 @@ public class InputUtil {
             try {
                 return LocalDate.parse(scanner.nextLine());
             } catch (DateTimeParseException e) {
-                throw new ValidationException("Vui lòng nhập ngày theo định dạng yyyy-MM-dd.");
+                PrintError.println("Vui lòng nhập ngày theo định dạng yyyy-MM-dd.");
             }
         }
     }
@@ -59,9 +59,23 @@ public class InputUtil {
             try {
                 int choice = Integer.parseInt(scanner.nextLine());
                 if (choice >= min && choice <= max) return choice;
-                throw new ValidationException("Vui lòng chọn từ " + min + " đến " + max + ".");
+                PrintError.println("Vui lòng chọn từ " + min + " đến " + max + ".");
             } catch (NumberFormatException e) {
                 throw new ValidationException("Vui lòng nhập số hợp lệ.");
+            }
+        }
+    }
+
+    public static String validateEmail(String prompt) throws ValidationException {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine();
+            if (input.trim().isEmpty()) {
+                PrintError.println("Dữ liệu không được để trống.");
+            }else if (!input.matches("^[A-Za-z0-9]+@gmail\\.com$")) {
+                PrintError.println("Sai định dạng email. Làm ơn nhập kiểu example@gmail.com!");
+            }else {
+                return input;
             }
         }
     }
