@@ -192,8 +192,8 @@ create procedure delete_course(
 begin
     -- cập nhật status của khóa học
     update course
-    set status = 'inactive'
-    where id = p_id and status = 'active';
+    set status = 'INACTIVE'
+    where id = p_id and status = 'ACTIVE';
 
     -- kiểm tra cập nhật thành công
     if row_count() > 0 then
@@ -221,7 +221,7 @@ begin
     -- tính tổng số bản ghi
     select count(*) into @total_records
     from course
-    where status = 'active'
+    where status = 'ACTIVE'
       and (p_name is null or name like concat('%', p_name, '%'))
       and (p_instructor is null or instructor like concat('%', p_instructor, '%'));
     -- tính tổng số trang
@@ -229,7 +229,7 @@ begin
     -- lấy danh sách khóa học
     select *
     from course
-    where status = 'active'
+    where status = 'ACTIVE'
       and (p_name is null or name like concat('%', p_name, '%'))
       and (p_instructor is null or instructor like concat('%', p_instructor, '%'))
     limit p_page_size offset v_offset;
@@ -543,14 +543,14 @@ begin
     select count(*) into total_records
     from enrollment e
              join student s on e.student_id = s.id
-    where e.course_id = p_course_id and s.status = 'ACTIVE';
+    where e.course_id = p_course_id and s.status = 'ACTIVE' and e.status = 'CONFIRM';
 
     set total_pages = ceil(total_records / p_page_size);
 
     if total_records > 0 then
         select s.* from student s
                             join enrollment e on s.id = e.student_id
-        where e.course_id = p_course_id and s.status = 'ACTIVE'
+        where e.course_id = p_course_id and s.status = 'ACTIVE' and e.status = 'CONFIRM'
         limit p_page_size offset offset_val;
 
         set return_code = 1; -- hiển thị sinh viên theo khóa học thành công
@@ -590,8 +590,65 @@ begin
     declare enrollment_count int;
     select count(*) into enrollment_count from enrollment where student_id = p_student_id and course_id = p_course_id;
     if enrollment_count = 1 then
-        delete from enrollment where student_id = p_student_id and course_id = p_course_id;
+        update enrollment
+        set status = 'DENIED' where student_id = p_student_id and course_id = p_course_id;
+#         delete from enrollment where student_id = p_student_id and course_id = p_course_id;
         set return_code = 1; -- Xoá học viên khỏi khoá học thành công
+    else
+        set return_code = 0; -- Học viên không tồn tại trong khoá học
+    end if;
+end //
+DELIMITER //
+
+-- Hiển thị những sinh viên đăng ký khoá học có trạng thái trong bảng enrollment là WAITING
+DELIMITER //
+create procedure view_waiting_students(
+    in p_course_id int,
+    in p_page int,
+    in p_page_size int,
+    out total_pages int,
+    out return_code int
+)
+begin
+    declare total_records int;
+    declare offset_val int;
+    set offset_val = (p_page - 1) * p_page_size;
+
+    select count(*) into total_records
+    from enrollment e
+             join student s on e.student_id = s.id
+    where e.course_id = p_course_id and e.status = 'WAITING';
+
+    set total_pages = ceil(total_records / p_page_size);
+
+    if total_records > 0 then
+        select s.* from student s
+                            join enrollment e on s.id = e.student_id
+        where e.course_id = p_course_id and e.status = 'WAITING'
+        limit p_page_size offset offset_val;
+
+        set return_code = 1; -- hiển thị sinh viên đang chờ duyệt thành công
+    else
+        set return_code = 0; -- không có sinh viên nào đang chờ duyệt
+    end if;
+end //
+DELIMITER //
+
+-- Duyệt sinh viên đăng ký khoá học (chuyển status thành CONFIRM nếu đồng ý còn nếu không thì chuyển thành DENIED)
+DELIMITER //
+create procedure approve_student_registration(
+    in p_student_id int,
+    in p_course_id int,
+    in p_status varchar(20),
+    out return_code int
+)
+begin
+    declare enrollment_count int;
+    select count(*) into enrollment_count from enrollment where student_id = p_student_id and course_id = p_course_id and status = 'WAITING';
+    if enrollment_count = 1 then
+        update enrollment
+        set status = p_status where student_id = p_student_id and course_id = p_course_id;
+        set return_code = 1; -- Duyệt sinh viên thành công
     else
         set return_code = 0; -- Học viên không tồn tại trong khoá học
     end if;
@@ -617,7 +674,7 @@ create procedure count_students_by_course(
     out student_count int
 )
 begin
-    select count(*) into student_count from enrollment where course_id = p_course_id;
+    select count(*) into student_count from enrollment where course_id = p_course_id and status = 'CONFIRM';
 end //
 DELIMITER //
 
@@ -653,14 +710,34 @@ create procedure register_course(
     in p_course_id int,
     out return_code int
 )
+
 begin
     declare enrollment_count int;
-    select count(*) into enrollment_count from enrollment where student_id = p_student_id and course_id = p_course_id;
+    declare enrollment_status varchar(100);
+
+    select count(*) into enrollment_count
+    from enrollment
+    where student_id = p_student_id and course_id = p_course_id;
+
     if enrollment_count = 0 then
-        insert into enrollment (student_id, course_id, registered_at, status) values (p_student_id, p_course_id, NOW(), 'WAITING');
-        set return_code = 1; -- Đăng ký khoá học thành công
+        insert into enrollment (student_id, course_id, registered_at, status)
+        values (p_student_id, p_course_id, now(), 'WAITING');
+        set return_code = 1; -- đăng ký thành công
+
     else
-        set return_code = 0; -- Học viên đã đăng ký khoá học này
+        select status into enrollment_status
+        from enrollment
+        where student_id = p_student_id and course_id = p_course_id;
+
+        if enrollment_status = 'CANCER' then
+            update enrollment
+            set status = 'WAITING'
+            where student_id = p_student_id and course_id = p_course_id;
+            set return_code = 1; -- cập nhật lại trạng thái thành waiting
+        else
+            set return_code = 0; -- học viên đã đăng ký rồi hoặc không được phép đăng ký
+        end if;
+
     end if;
 end //
 DELIMITER //
@@ -687,8 +764,8 @@ begin
     set total_pages = ceil(total_records / p_page_size);
 
     if total_records > 0 then
-        select c.* from course c
-                            join enrollment e on c.id = e.course_id
+        select c.*, e.status as enrollment_status from course c
+                                                           join enrollment e on c.id = e.course_id
         where e.student_id = p_student_id and c.status = 'ACTIVE'
         limit p_page_size offset offset_val;
 
@@ -698,6 +775,10 @@ begin
     end if;
 end //
 DELIMITER //
+SET @total_pages = 0;
+SET @return_code = 0;
+CALL view_registered_courses(2, 1, 1, @total_pages, @return_code);
+SELECT @total_pages AS total_pages, @return_code AS return_code;
 
 -- Huỷ đăng ký khoá học (Nếu chưa bắt đầu)
 DELIMITER //
@@ -710,7 +791,9 @@ begin
     declare enrollment_count int;
     select count(*) into enrollment_count from enrollment where student_id = p_student_id and course_id = p_course_id;
     if enrollment_count = 1 then
-        delete from enrollment where student_id = p_student_id and course_id = p_course_id;
+        update enrollment
+        set status = 'CANCER' where student_id = p_student_id and course_id = p_course_id;
+#         delete from enrollment where student_id = p_student_id and course_id = p_course_id;
         set return_code = 1; -- Huỷ đăng ký khoá học thành công
     else
         set return_code = 0; -- Không có khoá học nào đã đăng ký
@@ -753,3 +836,15 @@ begin
 end //
 DELIMITER //
 
+DELIMITER //
+create procedure get_student_name_by_email(
+    in p_email varchar(100),
+    out p_student_name varchar(100)
+)
+begin
+
+    select name into p_student_name
+    from student
+    where email = p_email and status = 'ACTIVE';
+end //
+DELIMITER //

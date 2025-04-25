@@ -2,6 +2,8 @@ package ra.edu.controller;
 
 import ra.edu.business.service.account.AccountServiceImp;
 import ra.edu.business.service.account.IAccountService;
+import ra.edu.business.service.student.IStudentService;
+import ra.edu.business.service.student.StudentServiceImp;
 import ra.edu.exception.DatabaseException;
 import ra.edu.exception.ValidationException;
 import ra.edu.utils.InputUtil;
@@ -9,6 +11,7 @@ import ra.edu.utils.Session;
 
 public class AccountController {
     private IAccountService accountService = new AccountServiceImp();
+    private IStudentService studentService = new StudentServiceImp();
 
     public void registerAccount() {
         try {
@@ -30,6 +33,11 @@ public class AccountController {
             String[] userEmail = new String[1];
             int result = accountService.loginAccount(email, password, userRole, userEmail);
             if (result > 0) {
+                if (userRole[0].equals("STUDENT")) {
+                    int studentId = studentService.getStudentIdByEmail(email);
+                    Session.login(userEmail[0], userRole[0], studentId);
+                    return true;
+                }
                 Session.login(userEmail[0], userRole[0], result);
                 return true;
             } else if (result == -1 ) {

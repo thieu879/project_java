@@ -4,6 +4,7 @@ import ra.edu.business.config.ConnectionDB;
 import ra.edu.business.model.Course;
 import ra.edu.business.model.Student;
 import ra.edu.exception.DatabaseException;
+import ra.edu.utils.Pair;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -133,11 +134,12 @@ public class EnrollmentDAOImp implements IEnrollmentDAO {
     }
 
     @Override
-    public List<Course> viewRegisteredCourses(int studentId, int page, int pageSize, int[] totalPages) throws DatabaseException {
+    public List<Pair<Course, String>> viewRegisteredCourses(int studentId, int page, int pageSize, int[] totalPages) throws DatabaseException {
         Connection conn = null;
         CallableStatement stmt = null;
         ResultSet rs = null;
-        List<Course> courses = new ArrayList<>();
+        List<Pair<Course, String>> courses = new ArrayList<>();
+
         try {
             conn = ConnectionDB.openConnection();
             conn.setAutoCommit(false);
@@ -147,20 +149,33 @@ public class EnrollmentDAOImp implements IEnrollmentDAO {
             stmt.setInt(3, pageSize);
             stmt.registerOutParameter(4, Types.INTEGER);
             stmt.registerOutParameter(5, Types.INTEGER);
-            rs = stmt.executeQuery();
-            while (rs.next()) {
-                Course course = new Course();
-                course.setId(rs.getInt("id"));
-                course.setName(rs.getString("name"));
-                course.setDuration(rs.getInt("duration"));
-                course.setInstructor(rs.getString("instructor"));
-                course.setCreateAt(rs.getDate("create_at").toLocalDate());
-                course.setStatus(rs.getString("status"));
-                courses.add(course);
+
+            boolean hasResults = stmt.execute();
+            if (hasResults) {
+                rs = stmt.getResultSet();
+                while (rs.next()) {
+                    Course course = new Course();
+                    course.setId(rs.getInt("id"));
+                    course.setName(rs.getString("name"));
+                    course.setDuration(rs.getInt("duration"));
+                    course.setInstructor(rs.getString("instructor"));
+                    course.setCreateAt(rs.getDate("create_at").toLocalDate());
+                    course.setStatus(rs.getString("status"));
+                    String enrollmentStatus = rs.getString("enrollment_status");
+                    courses.add(Pair.of(course, enrollmentStatus));
+                }
             }
+
             totalPages[0] = stmt.getInt(4);
+            int returnCode = stmt.getInt(5);
+
+            if (returnCode == 0) {
+                System.out.println("Không có khóa học nào đã đăng ký.");
+            }
+
             conn.commit();
             return courses;
+
         } catch (SQLException e) {
             try {
                 if (conn != null) conn.rollback();

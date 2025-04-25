@@ -4,11 +4,13 @@ import ra.edu.business.model.Course;
 import ra.edu.business.model.Enrollment;
 import ra.edu.business.model.Student;
 import ra.edu.business.service.course.CourseServiceImp;
+
 import ra.edu.business.service.enrollment.EnrollmentServiceImp;
 import ra.edu.business.service.enrollment.IEnrollmentService;
 import ra.edu.exception.DatabaseException;
 import ra.edu.exception.ValidationException;
 import ra.edu.utils.InputUtil;
+import ra.edu.utils.Pair;
 import ra.edu.utils.Session;
 import ra.edu.utils.TableFormatter;
 
@@ -17,6 +19,7 @@ import java.util.Scanner;
 
 public class EnrollmentController {
     private IEnrollmentService enrollmentService = new EnrollmentServiceImp();
+    private CourseController courseController = new CourseController();
     private static final int PAGE_SIZE = 2;
     private Scanner scanner = new Scanner(System.in);
 
@@ -77,6 +80,7 @@ public class EnrollmentController {
             if (!Session.isLoggedIn() || !Session.getUserRole().equals("STUDENT")) {
                 throw new ValidationException("Chỉ học viên đang đăng nhập mới có thể đăng ký khóa học.");
             }
+            courseController.displayCourses();
             int courseId = InputUtil.getPositiveInt("Nhập ID khóa học: ");
             enrollmentService.registerCourse(Session.getStudentId(), courseId);
             System.out.println("Đăng ký khóa học thành công!");
@@ -90,13 +94,18 @@ public class EnrollmentController {
             if (!Session.isLoggedIn() || !Session.getUserRole().equals("STUDENT")) {
                 throw new ValidationException("Chỉ học viên đang đăng nhập mới có thể xem khóa học đã đăng ký.");
             }
+
             int page = 1;
             int[] totalPages = new int[1];
+
             while (true) {
-                List<Course> courses = enrollmentService.viewRegisteredCourses(Session.getStudentId(), page, PAGE_SIZE, totalPages);
-                TableFormatter.displayCourses(courses);
+                List<Pair<Course, String>> courses = enrollmentService.viewRegisteredCourses(
+                        Session.getStudentId(), page, PAGE_SIZE, totalPages
+                );
+                TableFormatter.displayRegisteredCourses(courses);
                 System.out.println("Trang: " + page + "/" + totalPages[0]);
                 displayPagingMenu();
+
                 int choice = InputUtil.getChoice(1, 4, "Chọn chức năng: ");
                 if (choice == 1 && page < totalPages[0]) {
                     page++;

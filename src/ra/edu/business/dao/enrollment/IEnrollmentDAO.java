@@ -3,6 +3,7 @@ package ra.edu.business.dao.enrollment;
 import ra.edu.business.model.Course;
 import ra.edu.business.model.Student;
 import ra.edu.exception.DatabaseException;
+import ra.edu.utils.Pair;
 
 import java.util.List;
 
@@ -11,7 +12,7 @@ public interface IEnrollmentDAO {
     int removeStudentFromCourse(int studentId, int courseId) throws DatabaseException;
     List<Student> displayStudentsByCourse(int courseId, int page, int pageSize, int[] totalPages) throws DatabaseException;
     int registerCourse(int studentId, int courseId) throws DatabaseException;
-    List<Course> viewRegisteredCourses(int studentId, int page, int pageSize, int[] totalPages) throws DatabaseException;
+    List<Pair<Course, String>> viewRegisteredCourses(int studentId, int page, int pageSize, int[] totalPages) throws DatabaseException;
     int cancelRegistration(int studentId, int courseId) throws DatabaseException;
     int[] countCoursesAndStudents() throws DatabaseException;
     int countStudentsByCourse(int courseId) throws DatabaseException;

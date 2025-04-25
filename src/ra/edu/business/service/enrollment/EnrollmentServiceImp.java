@@ -6,6 +6,7 @@ import ra.edu.business.model.Course;
 import ra.edu.business.model.Student;
 import ra.edu.exception.DatabaseException;
 import ra.edu.exception.ValidationException;
+import ra.edu.utils.Pair;
 import ra.edu.validate.EnrollmentValidator;
 
 import java.util.List;
@@ -49,10 +50,18 @@ public class EnrollmentServiceImp implements IEnrollmentService {
     }
 
     @Override
-    public List<Course> viewRegisteredCourses(int studentId, int page, int pageSize, int[] totalPages) throws ValidationException, DatabaseException {
+    public List<Pair<Course, String>> viewRegisteredCourses(int studentId, int page, int pageSize, int[] totalPages)
+            throws ValidationException, DatabaseException {
         if (studentId <= 0) {
             throw new ValidationException("Mã học viên không hợp lệ.");
         }
+        if (page <= 0) {
+            throw new ValidationException("Số trang phải lớn hơn 0.");
+        }
+        if (pageSize <= 0) {
+            throw new ValidationException("Kích thước trang phải lớn hơn 0.");
+        }
+
         return enrollmentDAO.viewRegisteredCourses(studentId, page, pageSize, totalPages);
     }
 
